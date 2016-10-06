@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+dice-engine/SchemaMatching/webtable/
+**/lib
+.DS_Store
+**/*.pptx
+**/*ppt
+*~
+.project
+.cproject
+.settings/
