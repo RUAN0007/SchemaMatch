@@ -1,6 +1,7 @@
 #include "IKnowledgeBase.h"
 #include "WebTable.h"
 #include <queue>
+#include <iostream>
 using namespace std;
 
 //TKEntry keeps the correspondecen between a table column and a KB type
@@ -18,6 +19,15 @@ public:
 	URI getType() const;
 
 	double getScore() const;
+
+	friend inline std::ostream & operator<<(std::ostream & os, CKEntry const & v) {
+
+		os <<  "ColID: ";
+		os << v.colName << endl;
+		os << "URI:"<< v.type << endl;
+		os << "Score: " << v.score;
+		return os;
+	}
 
 	friend inline bool operator< (const CKEntry& lhs, const CKEntry& rhs){ return lhs.score < rhs.score;};
 
@@ -45,6 +55,15 @@ public:
 
 	double getScore() const;
 
+	friend inline std::ostream & operator<<(std::ostream & Str, PKEntry const & v) {
+		Str << "SubColID: ";
+			Str << v.subColName <<" ";
+			Str <<  "ObjColID: ";
+			Str << v.objColName <<endl;
+			Str << "URI:"<< v.relation << endl;
+			Str << "Score: " << v.score;
+		return Str;
+	}
 	friend inline bool operator< (const PKEntry& lhs, const PKEntry& rhs){ return lhs.score < rhs.score;};
 
 	friend inline bool operator> (const PKEntry& lhs, const PKEntry& rhs){ return lhs.score > rhs.score;}
