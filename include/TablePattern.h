@@ -90,6 +90,10 @@ public:
 	//num: the number of received table patterns with the highest point
 	vector<TablePattern> generatePatterns(const WebTable* webTable,int num) const;
 
-	queue<CKEntry> getColTypes(string colHeader, vector<string> values);
-	queue<PKEntry> getPairRels(string col1, vector<string> values1, string col2, vector<string> values2);
+	priority_queue<CKEntry> getColTypes(string colHeader, vector<string> values);
+	priority_queue<PKEntry> getPairRels(string col1, vector<string> values1, string col2, vector<string> values2);
+	void getCoherenceScore(const URI type, const URI rel, double* subScore, double* objScore);
 };
+
+
+int shareURICount(list<URI> l1, list<URI> l2);

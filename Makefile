@@ -13,6 +13,7 @@ LIBDIR = -L lib
 LIB = -l dice-knowledgebase
 LDFLAGS =  -lcurl -ltinyxml -lclucene-shared -lclucene-core
 
+SRC = src
 INC_DEBUG = $(INC)
 CFLAGS_DEBUG = $(CFLAGS) -g
 RESINC_DEBUG = $(RESINC)
@@ -20,42 +21,62 @@ RCFLAGS_DEBUG = $(RCFLAGS)
 LIBDIR_DEBUG = $(LIBDIR)
 LIB_DEBUG = $(LIB)
 LDFLAGS_DEBUG = $(LDFLAGS)
-OBJDIR_DEBUG = obj/Debug
+OBJDIR_DEBUG = obj/debug
 DEP_DEBUG = 
-OUT_DEBUG = bin/Debug/SchemaMatching
+OUTDIR_DEBUG = bin/debug
 
-OBJ_DEBUG = $(OBJDIR_DEBUG)/src/main.o $(OBJDIR_DEBUG)/src/WebTable.o $(OBJDIR_DEBUG)/src/jsoncpp.o $(OBJDIR_DEBUG)/src/TablePattern.o
+OBJ_DEBUG = $(OBJDIR_DEBUG)/main.o $(OBJDIR_DEBUG)/WebTable.o $(OBJDIR_DEBUG)/jsoncpp.o $(OBJDIR_DEBUG)/TablePattern.o
 
-all: debug
-	$(OUT_DEBUG)
-clean: clean_debug
+MKDIR_P = mkdir -p
 
-before_debug: 
-	test -d bin/Debug || mkdir -p bin/Debug
-	test -d $(OBJDIR_DEBUG)/src || mkdir -p $(OBJDIR_DEBUG)/src
+INC_TEST = $(INC)
+CFLAGS_TEST = $(CFLAGS) -g
+RESINC_TEST = $(RESINC)
+RCFLAGS_TEST = $(RCFLAGS)
+LIBDIR_TEST = $(LIBDIR)
+LIB_TEST = $(LIB) -l gtest
+LDFLAGS_TEST = $(LDFLAGS) -pthread
+OBJDIR_TEST = obj/test
+SRC_TEST = test
+DEP_TEST = 
+OUTDIR_TEST = bin/test
+SRC_TEST = test
+OBJ_TEST = $(OBJDIR_TEST)/test.o $(OBJDIR_DEBUG)/TablePattern.o
 
-after_debug: 
 
-debug: before_debug out_debug after_debug
+DIR = $(OBJDIR_DEBUG) $(OBJDIR_TEST) $(OUTDIR_DEBUG) $(OUTDIR_TEST)
 
-out_debug: before_debug $(OBJ_DEBUG) $(DEP_DEBUG)
-	$(LD) $(LIBDIR_DEBUG) -o $(OUT_DEBUG) $(OBJ_DEBUG)  $(LIB_DEBUG) $(LDFLAGS_DEBUG) 
+all: folder debug test
 
-$(OBJDIR_DEBUG)/src/WebTable.o: src/WebTable.cpp
-	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c src/WebTable.cpp -o $(OBJDIR_DEBUG)/src/WebTable.o
+folder: $(DIR)
 
-$(OBJDIR_DEBUG)/src/jsoncpp.o: src/jsoncpp.cpp
-	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c src/jsoncpp.cpp -o $(OBJDIR_DEBUG)/src/jsoncpp.o
+$(DIR):
+	$(MKDIR_P) $(DIR)
 
-$(OBJDIR_DEBUG)/src/main.o: main.cpp
-	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c main.cpp -o $(OBJDIR_DEBUG)/src/main.o
+test: $(OBJ_TEST)
+	$(CXX) $(LIBDIR_TEST) $(OBJ_TEST) $(LIB_TEST) $(LDFLAGS_TEST) -o $(OUTDIR_TEST)/test
 
-$(OBJDIR_DEBUG)/src/TablePattern.o: src/TablePattern.cpp
-	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c src/TablePattern.cpp -o $(OBJDIR_DEBUG)/src/TablePattern.o
+$(OBJDIR_TEST)/test.o: $(SRC_TEST)/test.cpp
+	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC_TEST)/test.cpp -o $(OBJDIR_TEST)/test.o
+	
 
-clean_debug: 
-	rm -f $(OBJ_DEBUG) $(OUT_DEBUG)
-	rm -rf bin/Debug
-	rm -rf $(OBJDIR_DEBUG)/src
 
-.PHONY: before_debug after_debug clean_debug 
+debug: $(OBJ_DEBUG) 
+	$(LD) $(LIBDIR_DEBUG) -o $(OUTDIR_DEBUG)/main $(OBJ_DEBUG)  $(LIB_DEBUG) $(LDFLAGS_DEBUG) 
+
+$(OBJDIR_DEBUG)/WebTable.o: $(SRC)/WebTable.cpp
+	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC)/WebTable.cpp -o $(OBJDIR_DEBUG)/WebTable.o
+
+$(OBJDIR_DEBUG)/jsoncpp.o: $(SRC)/jsoncpp.cpp
+	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC)/jsoncpp.cpp -o $(OBJDIR_DEBUG)/jsoncpp.o
+
+$(OBJDIR_DEBUG)/main.o: main.cpp
+	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c main.cpp -o $(OBJDIR_DEBUG)/main.o
+
+$(OBJDIR_DEBUG)/TablePattern.o: $(SRC)/TablePattern.cpp
+	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC)/TablePattern.cpp -o $(OBJDIR_DEBUG)/TablePattern.o
+
+clean: 
+	rm -rf $(OBJDIR_DEBUG) $(OBJDIR_TEST)
+	rm -rf $(OUTDIR_DEBUG) $(OUTDIR_TEST) 
+	

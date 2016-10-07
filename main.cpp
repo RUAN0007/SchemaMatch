@@ -6,6 +6,7 @@
 #include "TablePattern.h"
 #include <vector>
 #include <queue>
+#include <algorithm>
 // #include "include/IKnowledgeBase.h"
 
 using namespace std;
@@ -34,16 +35,27 @@ int main(){
 	kb.init("http://epic.d1.comp.nus.edu.sg:8890/sparql");
 	cout << kb.getNumberOfTypes() << endl;
 	list<URI> uris = kb.listCandidateTypes("China");
+	list<URI> rels = kb.listCandidateRelations("China","Beijing");
+	URI rel = rels.front();
+	cout << "Rel Size: "<< rels.size() <<endl;
 
-	for(list<URI>::iterator it = uris.begin(); it != uris.end(); it++)
-	{
-		std::cout << *it << endl;
+	list<URI> urls = {"a","b","c"};
+	auto r = find(urls.begin(),urls.end(),"b");
+
+	if(r == urls.end()){
+		cout << "End"<< endl;
+	}else{
+		cout << *r <<endl;
 	}
-
-	cout << uris.front() << endl;
-
-	cout << "Instance Count: " << kb.countType(uris.front()) << endl;
-	cout << "TypeS Count: " <<kb.getNumberOfTypes() << endl;
+	//	for(list<URI>::iterator it = uris.begin(); it != uris.end(); it++)
+//	{
+//		std::cout << *it << endl;
+//	}
+//
+//	cout << uris.front() << endl;
+//
+//	cout << "Instance Count: " << kb.countType(uris.front()) << endl;
+//	cout << "TypeS Count: " <<kb.getNumberOfTypes() << endl;
 
 	// WebTable wt =   getExampleWebTable();
 	// vector<string> value = wt.getColValues("Kartara_1");
