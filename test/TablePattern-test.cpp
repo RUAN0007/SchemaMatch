@@ -6,9 +6,15 @@
  */
 #include <list>
 #include "TablePattern.h"
+#include "KnowledgeBase.h"
+
 #include "gtest/gtest.h"
 
-TEST(ShareURICountI1, Normal) {
+using namespace std;
+WebTable getExampleWebTable();
+
+
+TEST(ShareURICount, Normal) {
 	URI u1 = "a";
 	URI u2 = "b";
 	URI u3 = "c";
@@ -25,7 +31,7 @@ TEST(ShareURICountI1, Normal) {
 	l2.push_back(v1);
 	l2.push_back(v2);
 
-	EXPECT_EQ(shareURICount(l1,l2),2);
+	EXPECT_EQ(shareURICount(l1, l2), 2);
 }
 
 

@@ -11,81 +11,81 @@
 
 using namespace std;
 WebTable getExampleWebTable();
+void show_getColTypes();
+void show_getPairRel();
+void show_cohScore();
 int main(){
-
-	// vector<CKEntry> q;
-	// CKEntry ck3("1","3",1.4);
-
-	// CKEntry ck1("1","2",1.2);
-	// CKEntry ck2("1","3",1.3);
-	// q.push_back(ck2);
-	// q.push_back(ck1);
-	// q.push_back(ck3);
-
-	// for(auto e:q){
-	// 	cout << e.getScore() << endl;
-	// }
- //    // while( !q.empty() ){
- //    // 	auto e = q.top();
- //    //     cout << e.getScore() << endl;
- //    //     q.pop();
- //    // }
- //    cout << (ck1 > ck2) << endl;
-	KB kb;
-	kb.init("http://epic.d1.comp.nus.edu.sg:8890/sparql");
-	cout << kb.getNumberOfTypes() << endl;
-	list<URI> uris = kb.listCandidateTypes("China");
-	list<URI> rels = kb.listCandidateRelations("China","Beijing");
-	URI rel = rels.front();
-	cout << "Rel Size: "<< rels.size() <<endl;
-
-	list<URI> urls = {"a","b","c"};
-	auto r = find(urls.begin(),urls.end(),"b");
-
-	if(r == urls.end()){
-		cout << "End"<< endl;
-	}else{
-		cout << *r <<endl;
-	}
-	//	for(list<URI>::iterator it = uris.begin(); it != uris.end(); it++)
-//	{
-//		std::cout << *it << endl;
-//	}
-//
-//	cout << uris.front() << endl;
-//
-//	cout << "Instance Count: " << kb.countType(uris.front()) << endl;
-//	cout << "TypeS Count: " <<kb.getNumberOfTypes() << endl;
-
-	// WebTable wt =   getExampleWebTable();
-	// vector<string> value = wt.getColValues("Kartara_1");
-	// wt.print();
-
-	// TPGenerator tpGen(&kb);
-
-	// queue<CKEntry> q = tpGen.getColTypes("Kartara_1",value);
-	// cout << q.size() << endl;
- //    while( !q.empty() ){
- //    	CKEntry e = q.front();
- //    	q.front();
- //    	cout << e.getColName() << endl;
- //    	cout << e.getType() << endl;
- //        cout << e.getScore() << endl;
- //        q.pop();
- //    }
- 
+	//show_getPairRel();
+	show_cohScore();
 }
 
 WebTable getExampleWebTable() {
 	//An example web table in Kartara Implemenataion
 
 	WebTable wt("Kartara");
-	vector<string> col1 = {"Rossi","Klate","Pirlo"};
-	vector<string> col2 = {"Italy", "China", "Japan"};
-	vector<string> col3 = {"Rome","Beijing","Toky"};
+	vector<string> col1 = { "Rossi", "Klate", "Pirlo" };
+	vector<string> col2 = { "Italy", "China", "Japan" };
+	vector<string> col3 = { "Rome", "Beijing", "Toky" };
 
 	wt.addCol(col1);
 	wt.addCol(col2);
 	wt.addCol(col3);
 	return wt;
+}
+
+
+void show_getColTypes(){
+
+	KB kb;
+	kb.init("http://epic.d1.comp.nus.edu.sg:8890/sparql");
+	WebTable wt = getExampleWebTable();
+	vector<string> value = wt.getColValues("Kartara_1");
+
+	TPGenerator tpGen(&kb);
+	priority_queue<CKEntry> q = tpGen.getColTypes("Kartara_1", value);
+	cout << q.size() << endl;
+	while (!q.empty()) {
+		CKEntry e = q.top();
+		cout <<e<<endl;
+		q.pop();
+	}
+}
+
+
+void show_getPairRel() {
+
+	KB kb;
+	kb.init("http://epic.d1.comp.nus.edu.sg:8890/sparql");
+	WebTable wt = getExampleWebTable();
+	vector<string> value = wt.getColValues("Kartara_1");
+
+	 vector<string>value2 = wt.getColValues("Kartara_2");
+	 TPGenerator tpGen(&kb);
+
+     priority_queue<PKEntry> relations = tpGen.getPairRels("Kartara_1",value,"Kartara_2",value2);
+     cout <<"Candidate Rel Size:" << relations.size() <<endl;
+     while(!relations.empty()) {
+    	 PKEntry e = relations.top();
+    	 relations.pop();
+    	 cout << e <<endl;
+     }
+}
+
+void show_cohScore() {
+
+	KB kb;
+	kb.init("http://epic.d1.comp.nus.edu.sg:8890/sparql");
+
+	URI type = kb.listCandidateTypes("Beijing").front();
+	URI rel = kb.listCandidateRelations("China","Beijing").front();
+
+	cout <<type<<endl;
+	cout <<rel <<endl;
+
+	 TPGenerator tpGen(&kb);
+	 double subScore;
+	 double objScore;
+	 tpGen.getCoherenceScore(type,rel,&subScore,&objScore);
+	 cout <<"SubScore: "<<subScore << endl;
+	 cout <<"ObjScore: " << objScore << endl;
 }

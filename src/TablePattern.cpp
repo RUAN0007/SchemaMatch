@@ -7,7 +7,8 @@
 #include <queue>
 #include <algorithm>
 #include <assert.h>
-
+#define DEBUG
+#include <debug.h>
 //CKEntry keeps the correspondence between a table column and a KB type
 int shareURICount(list<URI> l1, list<URI> l2);
 
@@ -113,13 +114,12 @@ priority_queue<PKEntry> TPGenerator::getPairRels(string col1,
 	map<string, list<URI>> relMap;
 
 	int size = values1.size();
-
 	for (int i = 0; i < size; i++) {
 		string v1 = values1.at(i);
 		string v2 = values2.at(i);
 
 		string key = v1 + "_" + v2;
-		if (relMap.find(key) == relMap.end())
+		if (relMap.find(key) != relMap.end())
 			continue;
 
 		list<URI> cRels = this->KBptr->listCandidateRelations(v1, v2);
@@ -132,14 +132,15 @@ priority_queue<PKEntry> TPGenerator::getPairRels(string col1,
 	}
 
 	int numRel = this->KBptr->getNumberOfRelations();
-
+	//TODO Print
+	DEBUG_STDOUT(size);
 	for (URI rel : rels) {
 		double score = 0.0;
-		int relationPairCount = 1; //TODO later query KB API
+		int relationPairCount = this->KBptr->getSubjectEntites(rel).size();
 
 		for (int i = 0; i < size; i++) {
-			string v1 = values1.at(1);
-			string v2 = values2.at(2);
+			string v1 = values1.at(i);
+			string v2 = values2.at(i);
 			string key = v1 + "_" + v2;
 			if (relMap.find(key) == relMap.end())
 				continue;
@@ -149,7 +150,7 @@ priority_queue<PKEntry> TPGenerator::getPairRels(string col1,
 				continue;
 			if (find(cRels.begin(), cRels.end(), rel) == cRels.end())
 				continue;
-
+			DEBUG_STDOUT(numRel);
 			score += (1.0 / log((double) relationPairCount))
 					* (log(double(numRel) / (double) cRelsCount));
 
@@ -161,10 +162,8 @@ priority_queue<PKEntry> TPGenerator::getPairRels(string col1,
 	return relQ;
 }
 
-void TPGenerator::getCoherenceScore(const URI type,
-									const URI rel,
-									double* subScore,
-									double* objScore) {
+void TPGenerator::getCoherenceScore(const URI type, const URI rel,
+		double* subScore, double* objScore) {
 
 	list<URI> entities = this->KBptr->getEntites(type);
 	list<URI> subEntity = this->KBptr->getSubjectEntites(rel);
@@ -172,15 +171,26 @@ void TPGenerator::getCoherenceScore(const URI type,
 
 	int typeCount = this->KBptr->getNumberOfTypes();
 
-	double tProb = (double)entities.size() / (double)typeCount;
-	double subProb = (double)subEntity.size() / (double)typeCount;
-	double objProb = (double)objEntity.size() / (double)typeCount;
+	double tProb = (double) entities.size() / (double) typeCount;
+	double subProb = (double) subEntity.size() / (double) typeCount;
+	double objProb = (double) objEntity.size() / (double) typeCount;
 
-	double tSubProb = (double)shareURICount(subEntity,entities) / (double) typeCount;
-	double tObjProb = (double)shareURICount(objEntity, entities) / (double) typeCount;
+	double tSubProb = (double) shareURICount(subEntity, entities)
+			/ (double) typeCount;
+	double tObjProb = (double) shareURICount(objEntity, entities)
+			/ (double) typeCount;
+	DEBUG_STDOUT(tProb);
+	DEBUG_STDOUT(subProb);
+	DEBUG_STDOUT(objProb);
 
-	*subScore = ((log((tSubProb)/(tProb * subProb))/(tSubProb * (-1))) + 1.0)/2.0;
-	*objScore = ((log((tObjProb)/(tProb * objProb))/(tObjProb * (-1))) + 1.0)/2.0;
+	DEBUG_STDOUT(tSubProb);
+	DEBUG_STDOUT(tObjProb);
+	*subScore = tSubProb<1e-3?0:
+			((log((tSubProb) / (tProb * subProb)) / (tSubProb * (-1))) + 1.0)
+					/ 2.0;
+	*objScore = tObjProb<1e-3?0:
+			((log((tObjProb) / (tProb * objProb)) / (tObjProb * (-1))) + 1.0)
+					/ 2.0;
 
 }
 
@@ -188,12 +198,11 @@ void TPGenerator::getCoherenceScore(const URI type,
 
 int shareURICount(list<URI> l1, list<URI> l2) {
 	int r = 0;
-	for(auto e:l1) {
-		if(find(l2.begin(),l2.end(),e) != l2.end()) {
+	for (auto e : l1) {
+		if (find(l2.begin(), l2.end(), e) != l2.end()) {
 			r++;
 		}
 	}
 	return r;
 }
-
 
