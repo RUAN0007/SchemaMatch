@@ -25,7 +25,9 @@ OBJDIR_DEBUG = obj/debug
 DEP_DEBUG = 
 OUTDIR_DEBUG = bin/debug
 
-OBJ_DEBUG = $(OBJDIR_DEBUG)/main.o $(OBJDIR_DEBUG)/WebTable.o $(OBJDIR_DEBUG)/jsoncpp.o $(OBJDIR_DEBUG)/TablePattern.o
+OBJ_DEBUG =  $(OBJDIR_DEBUG)/WebTable.o $(OBJDIR_DEBUG)/jsoncpp.o $(OBJDIR_DEBUG)/TablePattern.o
+OBJ_MAIN_DEBUG = $(OBJDIR_DEBUG)/main.o
+
 
 MKDIR_P = mkdir -p
 
@@ -41,8 +43,8 @@ SRC_TEST = test
 DEP_TEST = 
 OUTDIR_TEST = bin/test
 SRC_TEST = test
-OBJ_TEST = $(OBJDIR_TEST)/test.o $(OBJDIR_DEBUG)/TablePattern.o
-
+OBJ_TEST =  $(OBJDIR_TEST)/TablePattern-test.o
+OBJ_MAIN_TEST = $(OBJDIR_TEST)/test.o
 
 DIR = $(OBJDIR_DEBUG) $(OBJDIR_TEST) $(OUTDIR_DEBUG) $(OUTDIR_TEST)
 
@@ -53,16 +55,17 @@ folder: $(DIR)
 $(DIR):
 	$(MKDIR_P) $(DIR)
 
-test: $(OBJ_TEST)
-	$(CXX) $(LIBDIR_TEST) $(OBJ_TEST) $(LIB_TEST) $(LDFLAGS_TEST) -o $(OUTDIR_TEST)/test
+test: $(OBJ_TEST) $(OBJ_MAIN_TEST)
+	$(CXX) $(LIBDIR_TEST) $(OBJ_MAIN_TEST) $(OBJ_TEST) $(OBJ_DEBUG) $(LIB_TEST) $(LDFLAGS_TEST) -o $(OUTDIR_TEST)/test
 
 $(OBJDIR_TEST)/test.o: $(SRC_TEST)/test.cpp
 	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC_TEST)/test.cpp -o $(OBJDIR_TEST)/test.o
 	
+$(OBJDIR_TEST)/TablePattern-test.o: $(SRC_TEST)/TablePattern-test.cpp
+	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC_TEST)/TablePattern-test.cpp -o $(OBJDIR_TEST)/TablePattern-test.o
 
-
-debug: $(OBJ_DEBUG) 
-	$(LD) $(LIBDIR_DEBUG) -o $(OUTDIR_DEBUG)/main $(OBJ_DEBUG)  $(LIB_DEBUG) $(LDFLAGS_DEBUG) 
+debug: $(OBJ_DEBUG) $(OBJ_MAIN_DEBUG)
+	$(LD) $(LIBDIR_DEBUG) -o $(OUTDIR_DEBUG)/main $(OBJ_MAIN_DEBUG) $(OBJ_DEBUG)  $(LIB_DEBUG) $(LDFLAGS_DEBUG) 
 
 $(OBJDIR_DEBUG)/WebTable.o: $(SRC)/WebTable.cpp
 	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC)/WebTable.cpp -o $(OBJDIR_DEBUG)/WebTable.o
