@@ -6,6 +6,7 @@ AR = ar
 LD = g++
 WINDRES = windres
 
+HEADER_DIR = include
 INC = -Iinclude
 CFLAGS = -Wall -std=c++11
 RESINC = 
@@ -67,7 +68,7 @@ $(OBJDIR_TEST)/TablePattern-test.o: $(SRC_TEST)/TablePattern-test.cpp
 debug: $(OBJ_DEBUG) $(OBJ_MAIN_DEBUG)
 	$(LD) $(LIBDIR_DEBUG) -o $(OUTDIR_DEBUG)/main $(OBJ_MAIN_DEBUG) $(OBJ_DEBUG)  $(LIB_DEBUG) $(LDFLAGS_DEBUG) 
 
-$(OBJDIR_DEBUG)/WebTable.o: $(SRC)/WebTable.cpp
+$(OBJDIR_DEBUG)/WebTable.o: $(SRC)/WebTable.cpp $(HEADER_DIR)/WebTable.h
 	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC)/WebTable.cpp -o $(OBJDIR_DEBUG)/WebTable.o
 
 $(OBJDIR_DEBUG)/jsoncpp.o: $(SRC)/jsoncpp.cpp
@@ -76,7 +77,7 @@ $(OBJDIR_DEBUG)/jsoncpp.o: $(SRC)/jsoncpp.cpp
 $(OBJDIR_DEBUG)/main.o: main.cpp
 	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c main.cpp -o $(OBJDIR_DEBUG)/main.o
 
-$(OBJDIR_DEBUG)/TablePattern.o: $(SRC)/TablePattern.cpp
+$(OBJDIR_DEBUG)/TablePattern.o: $(SRC)/TablePattern.cpp $(HEADER_DIR)/TablePattern.h
 	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC)/TablePattern.cpp -o $(OBJDIR_DEBUG)/TablePattern.o
 
 clean: 

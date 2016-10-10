@@ -14,11 +14,35 @@ WebTable getExampleWebTable();
 void show_getColTypes();
 void show_getPairRel();
 void show_cohScore();
+void show_genTP();
 int main(){
 	//show_getPairRel();
-	show_cohScore();
-}
+//		show_cohScore();
+	show_genTP();
 
+}
+void show_genTP() {
+
+	KB kb;
+	kb.init("http://epic.d1.comp.nus.edu.sg:8890/sparql");
+	WebTable wt = getExampleWebTable();
+	TPGenerator tpGen(&kb);
+	priority_queue<TablePattern> tps = tpGen.generatePatterns(&wt, 2);
+
+	cout << "Table Pattern Size: " <<tps.size() << endl;
+//	TablePattern tp = tps.top();
+//	for (CKEntry ck: tp.getCKEntries()) {
+//		cout <<ck<< endl;
+//	}
+//	for (PKEntry pk: tp.getPKEntries()) {
+//		cout <<pk<< endl;
+//	}
+	while(!tps.empty()) {
+		TablePattern tp = tps.top();
+		tps.pop();
+		cout << tp<< endl << endl;
+	}
+}
 WebTable getExampleWebTable() {
 	//An example web table in Kartara Implemenataion
 

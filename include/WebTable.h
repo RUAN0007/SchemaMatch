@@ -16,7 +16,7 @@ public:
 	void setKeyColID(int keyID);
 	vector<string> getColValues(string colHeader);
 	map<string,vector<string>> getValues();
-
+	vector<string> getColHeaders() {return this->colHeaders;};
 	void print();
 	static WebTable parseWebTable(string tname, string line);
 };

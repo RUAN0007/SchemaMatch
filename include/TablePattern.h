@@ -89,11 +89,28 @@ public:
 	inline double getScore() {
 		return this->score;	
 	}
+
+	friend inline bool operator< (const TablePattern& lhs, const TablePattern& rhs){ return lhs.score < rhs.score;};
+
+	friend inline bool operator> (const TablePattern& lhs, const TablePattern& rhs){ return lhs.score > rhs.score;};
+
+	friend inline std::ostream & operator<<(std::ostream & os, TablePattern const & tp) {
+
+		for (CKEntry ckEntry:tp.getCKEntries()) {
+			os << ckEntry.getColName() << "[" << ckEntry.getScore() << "]->" <<ckEntry.getType() <<endl;
+		}
+		for (PKEntry pkEntry:tp.getPKEntries()) {
+			os << "(" << pkEntry.getSubColName() <<"," << pkEntry.getObjColName() << ")";
+			os << "[" << pkEntry.getScore() << "]->" <<pkEntry.getRelation() <<endl;
+		}
+		os << "Score: " << tp.score ;
+		return os;
+	}
 private:
 	
 	vector<CKEntry> ckEntries;
 	vector<PKEntry> pkEntries;
-	double score;
+	double score = -1; //-1 implies the score has not been computed yet.
 };
 
 class TPGenerator {
@@ -107,11 +124,21 @@ public:
 
 	//generate the table patterns for the given web table using the knowledge base
 	//num: the number of received table patterns with the highest point
-	vector<TablePattern> generatePatterns(const WebTable* webTable,int num) const;
+	priority_queue<TablePattern> generatePatterns(WebTable* webTable,int num);
 
 	priority_queue<CKEntry> getColTypes(string colHeader, vector<string> values);
 	priority_queue<PKEntry> getPairRels(string col1, vector<string> values1, string col2, vector<string> values2);
 	void getCoherenceScore(const URI type, const URI rel, double* subScore, double* objScore);
+	double computeScore(TablePattern* tp);
+
+	void genTPRecursively(
+					  vector<priority_queue<CKEntry>>::iterator colCKIt,
+					  vector<priority_queue<PKEntry>>::iterator pairPKIt,
+					  vector<priority_queue<CKEntry>>::iterator colEndIt,
+					  vector<priority_queue<PKEntry>>::iterator pairEndIt,
+					  list<CKEntry> ckEntries,
+					  list<PKEntry> pkEntries,
+					  priority_queue<TablePattern>* tpQ);
 };
 
 

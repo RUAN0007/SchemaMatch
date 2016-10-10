@@ -10,7 +10,6 @@
 #define DEBUG
 #include <debug.h>
 //CKEntry keeps the correspondence between a table column and a KB type
-int shareURICount(list<URI> l1, list<URI> l2);
 
 CKEntry::CKEntry(string col, URI type, double score) {
 	this->colName = col;
@@ -51,9 +50,46 @@ double PKEntry::getScore() const {
 	return this->score;
 }
 
-vector<TablePattern> TPGenerator::generatePatterns(const WebTable* WebTable,
-		int num) const {
-	return vector<TablePattern>();
+//Currently don't use num
+priority_queue<TablePattern> TPGenerator::generatePatterns(WebTable* wt,
+		int num) {
+	vector<string> colHeaders = wt->getColHeaders();
+	vector<priority_queue<CKEntry>> colCKEntries;
+	vector<priority_queue<PKEntry>> pairPKEntries;
+
+	for (string col1:colHeaders) {
+		vector<string> values1 = wt->getColValues(col1);
+		priority_queue<CKEntry> ckEntries = this->getColTypes(col1,values1);
+		if(!ckEntries.empty())	colCKEntries.push_back(ckEntries);
+
+		for(string col2:colHeaders) {
+			if(col1.compare(col2)==0) continue;
+			vector<string> values2 = wt->getColValues(col2);
+			priority_queue<PKEntry> q1 = this->getPairRels(col1, values1, col2, values2);
+			if(!q1.empty()) pairPKEntries.push_back(q1);
+
+	    }
+
+
+	}
+//	DEBUG_STDOUT(colCKEntries.size());
+//	DEBUG_STDOUT(pairPKEntries.size());
+	vector<priority_queue<CKEntry>>::iterator colCKIt = colCKEntries.begin();
+	vector<priority_queue<PKEntry>>::iterator pairPKIt = pairPKEntries.begin();
+
+	vector<priority_queue<CKEntry>>::iterator colEndCKIt = colCKEntries.end();
+	vector<priority_queue<PKEntry>>::iterator pairEndPKIt = pairPKEntries.end();
+
+//	for(;pairPKIt != pairEndPKIt;pairPKIt++) {
+//		cout << "hi " <<endl;
+//	}
+//	pairPKIt = pairPKEntries.begin();
+	list<CKEntry> ckEntries;
+	list<PKEntry> pkEntries;
+	priority_queue<TablePattern> tpQ;
+
+	this->genTPRecursively(colCKIt, pairPKIt, colEndCKIt, pairEndPKIt, ckEntries, pkEntries, &tpQ);
+	return tpQ;
 }
 
 priority_queue<CKEntry> TPGenerator::getColTypes(string colHeader,
@@ -97,11 +133,13 @@ priority_queue<CKEntry> TPGenerator::getColTypes(string colHeader,
 			int ctypeCount = ctypes.size();
 			score += (1.0 / log((double) typeInstanceCount))
 					* (log((double) kbTypeCount / (double) ctypeCount));
-			cout << "S:" << score << endl;
 
 		}
-		CKEntry ck(colHeader, type, score);
-		typeQ.push(ck);
+		if(score > 0.0){
+			CKEntry ck(colHeader, type, score);
+			typeQ.push(ck);
+		}
+
 	}
 	return typeQ;
 }
@@ -133,7 +171,7 @@ priority_queue<PKEntry> TPGenerator::getPairRels(string col1,
 
 	int numRel = this->KBptr->getNumberOfRelations();
 	//TODO Print
-	DEBUG_STDOUT(size);
+	//DEBUG_STDOUT(size);
 	for (URI rel : rels) {
 		double score = 0.0;
 		int relationPairCount = this->KBptr->getSubjectEntites(rel).size();
@@ -150,14 +188,15 @@ priority_queue<PKEntry> TPGenerator::getPairRels(string col1,
 				continue;
 			if (find(cRels.begin(), cRels.end(), rel) == cRels.end())
 				continue;
-			DEBUG_STDOUT(numRel);
+			//DEBUG_STDOUT(numRel);
 			score += (1.0 / log((double) relationPairCount))
 					* (log(double(numRel) / (double) cRelsCount));
 
 		} //End of for i
-
-		PKEntry pkEntry(col1, col2, rel, score);
-		relQ.push(pkEntry);
+		if(score > 0.0){
+			PKEntry pkEntry(col1, col2, rel, score);
+			relQ.push(pkEntry);
+		}
 	}
 	return relQ;
 }
@@ -179,12 +218,12 @@ void TPGenerator::getCoherenceScore(const URI type, const URI rel,
 			/ (double) typeCount;
 	double tObjProb = (double) shareURICount(objEntity, entities)
 			/ (double) typeCount;
-	DEBUG_STDOUT(tProb);
-	DEBUG_STDOUT(subProb);
-	DEBUG_STDOUT(objProb);
-
-	DEBUG_STDOUT(tSubProb);
-	DEBUG_STDOUT(tObjProb);
+//	DEBUG_STDOUT(tProb);
+//	DEBUG_STDOUT(subProb);
+//	DEBUG_STDOUT(objProb);
+//
+//	DEBUG_STDOUT(tSubProb);
+//	DEBUG_STDOUT(tObjProbw);
 	*subScore = tSubProb<1e-3?0:
 			((log((tSubProb) / (tProb * subProb)) / (tSubProb * (-1))) + 1.0)
 					/ 2.0;
@@ -194,6 +233,102 @@ void TPGenerator::getCoherenceScore(const URI type, const URI rel,
 
 }
 
+double TPGenerator::computeScore(TablePattern* tp) {
+	double score = 0.0;
+	vector<CKEntry> ckEntries = tp->getCKEntries();
+	vector<PKEntry> pkEntries = tp->getPKEntries();
+
+	for(CKEntry ck: ckEntries) {
+		score += ck.getScore();
+	}
+	for(PKEntry pk: pkEntries) {
+		score += pk.getScore();
+	}
+
+
+	for(CKEntry ck: ckEntries) {
+		string cid = ck.getColName();
+		URI colType = ck.getType();
+
+		for(PKEntry pk: pkEntries) {
+			string subCid = pk.getSubColName();
+			string objCid = pk.getObjColName();
+
+			URI rel = pk.getRelation();
+
+			//if cid is not equal to one of subCid and objCid, continue
+			if(cid.compare(subCid) != 0 && cid.compare(objCid) != 0 ) continue;
+			double subScore,objScore;
+			this->getCoherenceScore(colType, rel, &subScore, &objScore);
+
+			score += subScore +objScore;
+		}//End for PKEntry
+	}//End for for CKEntry
+	return score;
+}
+
+void TPGenerator::genTPRecursively(
+					  vector<priority_queue<CKEntry>>::iterator colCKIt,
+					  vector<priority_queue<PKEntry>>::iterator pairPKIt,
+					  vector<priority_queue<CKEntry>>::iterator colEndIt,
+					  vector<priority_queue<PKEntry>>::iterator pairEndIt,
+					  list<CKEntry> ckEntries,
+					  list<PKEntry> pkEntries,
+					  priority_queue<TablePattern>* tpQ) {
+//	DEBUG_STDOUT(ckEntries.size());
+//	DEBUG_STDOUT(pkEntries.size());
+//	if(colCKIt == colEndIt) cout << "End of Col" << endl;
+//	if(pairPKIt == pairEndIt) cout << "End of Pair" << endl;
+//	cout << "&&--------------"<< endl;
+//	for(CKEntry cks: ckEntries) {
+//		cout << cks.getColName() << endl;
+//	}
+//
+//	for(PKEntry pks: pkEntries) {
+//		cout << pks.getSubColName() << "," << pks.getObjColName() << endl;
+//	}
+//	cout << "----------------" <<endl;
+	if(colCKIt != colEndIt) {
+//		DEBUG_STDOUT("CK");
+		priority_queue<CKEntry>  ckEntryQ = *colCKIt;
+		while(!ckEntryQ.empty()) {
+			CKEntry ckEntry = ckEntryQ.top();
+			ckEntryQ.pop();
+			ckEntries.push_back(ckEntry);
+			vector<priority_queue<CKEntry>>::iterator newColCKIt = colCKIt + 1;
+			this->genTPRecursively(newColCKIt, pairPKIt, colEndIt, pairEndIt, ckEntries, pkEntries, tpQ);
+			ckEntries.pop_back();
+		}
+		return;
+	}
+	if(pairPKIt != pairEndIt){
+//		DEBUG_STDOUT("PK");
+		priority_queue<PKEntry>  pkEntryQ = *pairPKIt;
+		while(!pkEntryQ.empty()) {
+			PKEntry pkEntry = pkEntryQ.top();
+			pkEntryQ.pop();
+			pkEntries.push_back(pkEntry);
+			vector<priority_queue<PKEntry>>::iterator newPairPKIt = pairPKIt + 1;
+			this->genTPRecursively(colCKIt, newPairPKIt, colEndIt, pairEndIt, ckEntries, pkEntries, tpQ);
+			pkEntries.pop_back();
+		}
+		return;
+	}
+		TablePattern tp;
+		for (CKEntry ckEntry:ckEntries) {
+			tp.addCKEntry(ckEntry);
+//			if(ckEntry.getScore() < 1e-6) cout << "Error here" <<endl;
+		}
+
+		for(PKEntry pkEntry:pkEntries) {
+			tp.addPKEntry(pkEntry);
+		}
+		double score = this->computeScore(&tp);
+//		cout << "Score: " << score << endl;
+		tp.setScore(score);
+		tpQ->push(tp);
+//		cout <<"TPQ size: " << tpQ->size()<<endl;
+}
 //return the number of shared elements in two lists of URI
 
 int shareURICount(list<URI> l1, list<URI> l2) {
@@ -205,4 +340,5 @@ int shareURICount(list<URI> l1, list<URI> l2) {
 	}
 	return r;
 }
+
 
