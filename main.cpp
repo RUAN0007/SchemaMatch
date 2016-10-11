@@ -6,11 +6,13 @@
 #include "TablePattern.h"
 #include <vector>
 #include <queue>
+#include <SchemaMatching.h>
 #include <algorithm>
 // #include "include/IKnowledgeBase.h"
 
 using namespace std;
 WebTable getExampleWebTable();
+void show_typeDistribution();
 void show_getColTypes();
 void show_getPairRel();
 void show_cohScore();
@@ -19,6 +21,41 @@ int main(){
 	//show_getPairRel();
 //		show_cohScore();
 	show_genTP();
+	show_typeDistribution();
+
+}
+void show_typeDistribution() {
+
+	KB kb;
+	kb.init("http://epic.d1.comp.nus.edu.sg:8890/sparql");
+	WebTable wt = getExampleWebTable();
+	TPGenerator tpGen(&kb);
+	priority_queue<TablePattern> tps = tpGen.generatePatterns(&wt, 2);
+
+	cout << "Table Pattern Size: " <<tps.size() << endl;
+	vector<TablePattern> tpv;
+	while(!tps.empty()) {
+		TablePattern tp = tps.top();
+		tpv.push_back(tp);
+		tps.pop();
+	}
+//	map<TablePattern,double> tpProb = getTpProbability(tpv);
+//	for(auto tpProbIt = tpProb.begin();tpProbIt != tpProb.end();tpProbIt++) {
+//		cout << tpProbIt->first << endl;
+//		cout << "Prob: " << tpProbIt->second << endl;
+//	}
+	map<string,map<URI,double>> result = getColTypeDistribution(tpv);
+
+	//Display the mapping url and probability of each column
+	cout << "=================================================" << endl;
+	for(auto colMapIt = result.begin();colMapIt != result.end();colMapIt++) {
+		cout <<"Col Name: " << colMapIt->first << endl;
+		map<URI,double> urlMapping = colMapIt->second;
+		for (auto urlMapIt = urlMapping.begin();urlMapIt != urlMapping.end();urlMapIt++) {
+			cout << "\t" << "[" << urlMapIt->second <<"] " << urlMapIt->first << endl;
+		}
+		cout << "---------------------------------------------" << endl;
+	}
 
 }
 void show_genTP() {

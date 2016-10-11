@@ -1,3 +1,4 @@
+#pragma once
 #include "IKnowledgeBase.h"
 #include "WebTable.h"
 #include <queue>
@@ -90,6 +91,12 @@ public:
 		return this->score;	
 	}
 
+	inline void setProbability(double probability) {
+		this->probability = probability;
+	}
+	inline double getProbability() {
+		return this->probability;
+	}
 	friend inline bool operator< (const TablePattern& lhs, const TablePattern& rhs){ return lhs.score < rhs.score;};
 
 	friend inline bool operator> (const TablePattern& lhs, const TablePattern& rhs){ return lhs.score > rhs.score;};
@@ -111,6 +118,7 @@ private:
 	vector<CKEntry> ckEntries;
 	vector<PKEntry> pkEntries;
 	double score = -1; //-1 implies the score has not been computed yet.
+	double probability = 0.0; //-1 implies the probability has not been set
 };
 
 class TPGenerator {
