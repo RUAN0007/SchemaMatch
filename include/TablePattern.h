@@ -123,7 +123,7 @@ private:
 
 class TPGenerator {
 private: 
-	IKB* KBptr;
+	 IKB* KBptr;
 
 public: 
 	inline TPGenerator(IKB* kbPtr) {
@@ -132,12 +132,12 @@ public:
 
 	//generate the table patterns for the given web table using the knowledge base
 	//num: the number of received table patterns with the highest point
-	priority_queue<TablePattern> generatePatterns(WebTable* webTable,int num);
+	priority_queue<TablePattern> generatePatterns(const WebTable& webTable,int num) const;
 
-	priority_queue<CKEntry> getColTypes(string colHeader, vector<string> values);
-	priority_queue<PKEntry> getPairRels(string col1, vector<string> values1, string col2, vector<string> values2);
-	void getCoherenceScore(const URI type, const URI rel, double* subScore, double* objScore);
-	double computeScore(TablePattern* tp);
+	priority_queue<CKEntry> getColTypes(string colHeader, vector<string> values) const;
+	priority_queue<PKEntry> getPairRels(string col1, vector<string> values1, string col2, vector<string> values2) const;
+	void getCoherenceScore(const URI type, const URI rel, double* subScore, double* objScore) const;
+	double computeScore(const TablePattern& tp) const;
 
 	void genTPRecursively(
 					  vector<priority_queue<CKEntry>>::iterator colCKIt,
@@ -146,7 +146,7 @@ public:
 					  vector<priority_queue<PKEntry>>::iterator pairEndIt,
 					  list<CKEntry> ckEntries,
 					  list<PKEntry> pkEntries,
-					  priority_queue<TablePattern>* tpQ);
+					  priority_queue<TablePattern>* tpQ) const;
 };
 
 

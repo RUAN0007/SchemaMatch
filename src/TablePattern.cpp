@@ -51,20 +51,20 @@ double PKEntry::getScore() const {
 }
 
 //Currently don't use num
-priority_queue<TablePattern> TPGenerator::generatePatterns(WebTable* wt,
-		int num) {
-	vector<string> colHeaders = wt->getColHeaders();
+priority_queue<TablePattern> TPGenerator::generatePatterns(const WebTable& wt,
+		int num) const{
+	vector<string> colHeaders = wt.getColHeaders();
 	vector<priority_queue<CKEntry>> colCKEntries;
 	vector<priority_queue<PKEntry>> pairPKEntries;
 
 	for (string col1:colHeaders) {
-		vector<string> values1 = wt->getColValues(col1);
+		vector<string> values1 = wt.getColValues(col1);
 		priority_queue<CKEntry> ckEntries = this->getColTypes(col1,values1);
 		if(!ckEntries.empty())	colCKEntries.push_back(ckEntries);
 
 		for(string col2:colHeaders) {
 			if(col1.compare(col2)==0) continue;
-			vector<string> values2 = wt->getColValues(col2);
+			vector<string> values2 = wt.getColValues(col2);
 			priority_queue<PKEntry> q1 = this->getPairRels(col1, values1, col2, values2);
 			if(!q1.empty()) pairPKEntries.push_back(q1);
 
@@ -93,7 +93,7 @@ priority_queue<TablePattern> TPGenerator::generatePatterns(WebTable* wt,
 }
 
 priority_queue<CKEntry> TPGenerator::getColTypes(string colHeader,
-		vector<string> values) {
+		vector<string> values) const{
 	priority_queue<CKEntry> typeQ;
 	set<URI> types;
 
@@ -144,7 +144,7 @@ priority_queue<CKEntry> TPGenerator::getColTypes(string colHeader,
 	return typeQ;
 }
 priority_queue<PKEntry> TPGenerator::getPairRels(string col1,
-		vector<string> values1, string col2, vector<string> values2) {
+		vector<string> values1, string col2, vector<string> values2) const{
 	assert(values1.size() == values2.size());
 	priority_queue<PKEntry> relQ;
 
@@ -202,7 +202,7 @@ priority_queue<PKEntry> TPGenerator::getPairRels(string col1,
 }
 
 void TPGenerator::getCoherenceScore(const URI type, const URI rel,
-		double* subScore, double* objScore) {
+		double* subScore, double* objScore) const{
 
 	list<URI> entities = this->KBptr->getEntites(type);
 	list<URI> subEntity = this->KBptr->getSubjectEntites(rel);
@@ -233,10 +233,10 @@ void TPGenerator::getCoherenceScore(const URI type, const URI rel,
 
 }
 
-double TPGenerator::computeScore(TablePattern* tp) {
+double TPGenerator::computeScore(const TablePattern& tp) const{
 	double score = 0.0;
-	vector<CKEntry> ckEntries = tp->getCKEntries();
-	vector<PKEntry> pkEntries = tp->getPKEntries();
+	vector<CKEntry> ckEntries = tp.getCKEntries();
+	vector<PKEntry> pkEntries = tp.getPKEntries();
 
 	for(CKEntry ck: ckEntries) {
 		score += ck.getScore();
@@ -274,7 +274,7 @@ void TPGenerator::genTPRecursively(
 					  vector<priority_queue<PKEntry>>::iterator pairEndIt,
 					  list<CKEntry> ckEntries,
 					  list<PKEntry> pkEntries,
-					  priority_queue<TablePattern>* tpQ) {
+					  priority_queue<TablePattern>* tpQ) const{
 //	DEBUG_STDOUT(ckEntries.size());
 //	DEBUG_STDOUT(pkEntries.size());
 //	if(colCKIt == colEndIt) cout << "End of Col" << endl;
@@ -323,7 +323,7 @@ void TPGenerator::genTPRecursively(
 		for(PKEntry pkEntry:pkEntries) {
 			tp.addPKEntry(pkEntry);
 		}
-		double score = this->computeScore(&tp);
+		double score = this->computeScore(tp);
 //		cout << "Score: " << score << endl;
 		tp.setScore(score);
 		tpQ->push(tp);

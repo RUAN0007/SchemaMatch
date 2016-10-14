@@ -15,11 +15,11 @@ public:
 	void addCol(string colHeader,vector<string> values);
 	void addCol(vector<string> values);
 	void setKeyColID(int keyID);
-	vector<string> getColValues(string colHeader);
-	map<string,vector<string>> getValues();
-	vector<string> getColHeaders() {return this->colHeaders;};
-	void print();
-	static WebTable parseWebTable(string tname, string line);
+	vector<string> getColValues(string colHeader) const;
+	map<string,vector<string>> getValues() const;
+	vector<string> getColHeaders() const {return this->colHeaders;} ;
+	void print() ;
+	static WebTable parseWebTable(string tname, string line) ;
 };
 
 

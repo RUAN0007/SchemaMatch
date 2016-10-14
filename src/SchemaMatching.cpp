@@ -8,9 +8,9 @@
  * 		key:type URI
  * 		value: probability (double)
  */
-map<string,map<URI,double>> getColTypeDistribution(const vector<TablePattern>& tps){
+map<string,TypeDistribution> getColTypeDistribution(const vector<TablePattern>& tps){
 	map<TablePattern,double> patternProb = getTpProbability(tps);
-	map<string,map<URI,double>> result;
+	map<string,TypeDistribution> result;
 
 	auto patternProbIt = patternProb.begin();
 	for(;patternProbIt != patternProb.end();patternProbIt++) {
@@ -57,3 +57,13 @@ map<TablePattern,double> getTpProbability(const vector<TablePattern>& tps) {
 
 	return result;
 }
+
+//map<ColPair,TypeDistribution> matchSchema(const WebTable& wt1,
+//										  const WebTable& wt2){
+//
+//
+//
+//	map<String, TypeDistribution> colTypeDistribution1 = getColTypeDistribution(tp1);
+//	map<string, TypeDistribution> colTypeDist2 = getColTypeDistribution(tp2);
+//
+//}

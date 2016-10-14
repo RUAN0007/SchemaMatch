@@ -24,20 +24,20 @@ void WebTable::setKeyColID(int keyID) {
 	this->keyColID = keyID;
 }
 
-vector<string> WebTable::getColValues(string colHeader) {
-  map<string,vector<string>>::iterator colValIt = this->values.find(colHeader);
+vector<string> WebTable::getColValues(string colHeader) const{
+  map<string,vector<string>>::const_iterator colValIt = this->values.find(colHeader);
 
   if(colValIt == this->values.end()) return vector<string>();
 
   return colValIt->second;
 }
 
-map<string,vector<string>> WebTable::getValues(){
+map<string,vector<string>> WebTable::getValues() const{
   return this->values;
 }
 
 
-WebTable WebTable::parseWebTable(string tableName,string line) {
+WebTable WebTable::parseWebTable(string tableName,string line)  {
 	Json::Reader reader;  
  	Json::Value root;  
  	WebTable wt = WebTable(tableName);

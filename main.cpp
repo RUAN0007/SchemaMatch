@@ -30,7 +30,7 @@ void show_typeDistribution() {
 	kb.init("http://epic.d1.comp.nus.edu.sg:8890/sparql");
 	WebTable wt = getExampleWebTable();
 	TPGenerator tpGen(&kb);
-	priority_queue<TablePattern> tps = tpGen.generatePatterns(&wt, 2);
+	priority_queue<TablePattern> tps = tpGen.generatePatterns(wt, 2);
 
 	cout << "Table Pattern Size: " <<tps.size() << endl;
 	vector<TablePattern> tpv;
@@ -64,7 +64,7 @@ void show_genTP() {
 	kb.init("http://epic.d1.comp.nus.edu.sg:8890/sparql");
 	WebTable wt = getExampleWebTable();
 	TPGenerator tpGen(&kb);
-	priority_queue<TablePattern> tps = tpGen.generatePatterns(&wt, 2);
+	priority_queue<TablePattern> tps = tpGen.generatePatterns(wt, 2);
 
 	cout << "Table Pattern Size: " <<tps.size() << endl;
 //	TablePattern tp = tps.top();
