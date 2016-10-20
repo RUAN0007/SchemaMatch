@@ -146,14 +146,14 @@ public:
 	inline void setScore(double score) {
 		this->score = score;
 	}
-	inline double getScore() {
+	inline double getScore() const{
 		return this->score;	
 	}
 
 	inline void setProbability(double probability) {
 		this->probability = probability;
 	}
-	inline double getProbability() {
+	inline double getProbability() const{
 		return this->probability;
 	}
 	friend inline bool operator< (const TablePattern& lhs, const TablePattern& rhs){ return lhs.score < rhs.score;};
@@ -173,7 +173,7 @@ public:
 		return os;
 	}
 
-	inline Json::Value serialize() {
+	inline Json::Value serialize() const{
 		Json::Value jsonObj;
 
 		Json::Value ckEntries;
