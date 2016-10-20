@@ -54,10 +54,12 @@ public:
 
 class SchemaMatcher {
 private:
-	const Crowdsourcing& crowdPlatform;
+	const Crowdsourcing crowdPlatform;
+	const TPGenerator tpGen;
 
 public:
-	inline SchemaMatcher(const Crowdsourcing& csPlatform):crowdPlatform(csPlatform) {
+	inline SchemaMatcher(const Crowdsourcing& csPlatform,const TPGenerator tpGenerator):
+			crowdPlatform(csPlatform),tpGen(tpGenerator) {
 	}
 
 	~SchemaMatcher(){};
@@ -65,7 +67,7 @@ public:
 	/*
 	 *return job id
 	 */
-	int askTablePattern(const WebTable& webTable,int maxQuestion) const;
+	int askTablePattern(WebTable& webTable,unsigned int maxQuestion) const;
 
 	bool isTablePatternReady(int jobID) const;
 
@@ -75,7 +77,7 @@ public:
 	 */
 	TablePattern getTablePattern(int jobID) const;
 
-	int askSchemaMatching(const WebTable& wt1, const WebTable& wt2, int maxQuestion) const;
+	int askSchemaMatching(const WebTable& wt1, const WebTable& wt2, unsigned int maxQuestion) const;
 
 	bool isSchemaMatchingReady(int jobID) const;
 
