@@ -3,6 +3,7 @@
 #include "WebTable.h"
 #include <queue>
 #include <iostream>
+#include "json.h"
 using namespace std;
 
 //TKEntry keeps the correspondecen between a table column and a KB type
@@ -14,6 +15,7 @@ private:
 	double score;
 
 public:
+	CKEntry(){};
 	CKEntry(string col,URI type,double score);
 	string getColName() const;
 
@@ -33,6 +35,35 @@ public:
 	friend inline bool operator< (const CKEntry& lhs, const CKEntry& rhs){ return lhs.score < rhs.score;};
 
 	friend inline bool operator> (const CKEntry& lhs, const CKEntry& rhs){ return lhs.score > rhs.score;}
+
+	inline Json::Value serialize() const{
+		Json::Value jsonObj;
+		jsonObj["colID"] = this->colName;
+		jsonObj["type"] = this->type;
+		jsonObj["score"] = this->score;
+		return jsonObj;
+	}
+
+	inline static CKEntry deserialize(Json::Value jsonObj) {
+		 string colID = jsonObj["colID"].asString();
+		 URI type = jsonObj["type"].asString();
+		 double score = jsonObj["score"].asDouble();
+		 CKEntry ck(colID,type,score);
+		 return ck;
+	}
+
+	inline static CKEntry deserialize(string strValue,bool* failed){
+		Json::Reader reader;
+		Json::Value jsonObj;
+		CKEntry ck;
+		 if(reader.parse(strValue, jsonObj)) {
+			 *failed = false;
+			 ck = CKEntry::deserialize(jsonObj);
+		 }else{
+			 *failed = true;
+		 }
+		 return ck;
+	}
 };
 
 //PK Entry keeps a correspondence between a col pair with a KB relation
@@ -68,6 +99,34 @@ public:
 	friend inline bool operator< (const PKEntry& lhs, const PKEntry& rhs){ return lhs.score < rhs.score;};
 
 	friend inline bool operator> (const PKEntry& lhs, const PKEntry& rhs){ return lhs.score > rhs.score;}
+
+	inline Json::Value serialize() const{
+		Json::Value jsonObj;
+		jsonObj["SubColID"] = this->subColName;
+		jsonObj["ObjColID"] = this->objColName;
+		jsonObj["Relation"] = this->relation;
+		jsonObj["score"] = this->score;
+		return jsonObj;
+	}
+	inline static PKEntry deserialize(Json::Value jsonObj) {
+		 string subColID = jsonObj["SubColID"].asString();
+		 string objColID = jsonObj["ObjColID"].asString();
+		 URI relation = jsonObj["Relation"].asString();
+		 double score = jsonObj["score"].asDouble();
+		 return PKEntry(subColID,objColID,relation, score);
+	}
+	inline static PKEntry deserialize(string strValue,bool* failed){
+		Json::Reader reader;
+		Json::Value jsonObj;
+		PKEntry pk;
+		 if(reader.parse(strValue, jsonObj)) {
+			 *failed = false;
+			 pk = deserialize(jsonObj);
+		 }else{
+			 *failed = true;
+		 }
+		 return pk;
+	}
 };
 
 class TablePattern {
@@ -112,6 +171,53 @@ public:
 		}
 		os << "Score: " << tp.score ;
 		return os;
+	}
+
+	inline Json::Value serialize() {
+		Json::Value jsonObj;
+
+		Json::Value ckEntries;
+		for(CKEntry ck:this->getCKEntries()) ckEntries.append(ck.serialize());
+
+		Json::Value pkEntries;
+		for(PKEntry pk: this->getPKEntries()) pkEntries.append(pk.serialize());
+
+		jsonObj["CKEntries"] = ckEntries;
+		jsonObj["PKEntries"] = pkEntries;
+		jsonObj["Score"] = this->score;
+		jsonObj["Probability"] = this->probability;
+
+		return jsonObj;
+	}
+
+	inline static TablePattern deserialize(Json::Value jsonObj) {
+		TablePattern tp;
+		Json::Value ckEntries = jsonObj["CKEntries"];
+		for(unsigned int i = 0;i < ckEntries.size();i++) {
+			tp.addCKEntry(CKEntry::deserialize(ckEntries[i]));
+		}
+
+		Json::Value pkEntries = jsonObj["PKEntries"];
+		for(unsigned int i = 0;i < pkEntries.size();i++) {
+			tp.addPKEntry(PKEntry::deserialize(pkEntries[i]));
+		}
+
+		tp.setScore(jsonObj["Score"].asDouble());
+		tp.setProbability(jsonObj["Probability"].asDouble());
+		return tp;
+	}
+
+	inline static TablePattern deserialize(string strValue,bool* failed) {
+		Json::Value jsonObj;
+		Json::Reader reader;
+		TablePattern tp;
+		if(reader.parse(strValue, jsonObj)) {
+			*failed = false;
+			return TablePattern::deserialize(jsonObj);
+		}else{
+			*failed = true;
+		}
+		return tp;
 	}
 private:
 	

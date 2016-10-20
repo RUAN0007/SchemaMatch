@@ -26,7 +26,7 @@ OBJDIR_DEBUG = obj/debug
 DEP_DEBUG = 
 OUTDIR_DEBUG = bin/debug
 
-OBJ_DEBUG =  $(OBJDIR_DEBUG)/WebTable.o $(OBJDIR_DEBUG)/jsoncpp.o $(OBJDIR_DEBUG)/TablePattern.o $(OBJDIR_DEBUG)/SchemaMatching.o
+OBJ_DEBUG =  $(OBJDIR_DEBUG)/WebTable.o $(OBJDIR_DEBUG)/jsoncpp.o $(OBJDIR_DEBUG)/TablePattern.o $(OBJDIR_DEBUG)/SchemaMatching.o $(OBJDIR_DEBUG)/CrowdSourcing.o
 OBJ_MAIN_DEBUG = $(OBJDIR_DEBUG)/main.o
 
 
@@ -82,6 +82,9 @@ $(OBJDIR_DEBUG)/TablePattern.o: $(SRC)/TablePattern.cpp $(HEADER_DIR)/TablePatte
 
 $(OBJDIR_DEBUG)/SchemaMatching.o: $(SRC)/SchemaMatching.cpp $(HEADER_DIR)/SchemaMatching.h
 	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC)/SchemaMatching.cpp -o $(OBJDIR_DEBUG)/SchemaMatching.o
+
+$(OBJDIR_DEBUG)/CrowdSourcing.o: $(SRC)/CrowdSourcing.cpp $(HEADER_DIR)/CrowdSourcing.h
+	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC)/CrowdSourcing.cpp -o $(OBJDIR_DEBUG)/CrowdSourcing.o
 
 clean: 
 	rm -rf $(OBJDIR_DEBUG) $(OBJDIR_TEST)
