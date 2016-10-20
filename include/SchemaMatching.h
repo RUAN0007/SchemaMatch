@@ -1,5 +1,5 @@
 #pragma once
-#include "IKnowledgeBase.h"
+#include "KnowledgeBase.h"
 #include <map>
 #include <vector>
 #include <iostream>
@@ -8,20 +8,19 @@ using namespace std;
 
 typedef pair<string,string> ColPair;
 typedef map<URI,double> TypeDistribution;
-//class ColTypeDistribution{
-//public:
-//	inline ColTypeDistribution(string colId) {
-//		this->colId = colId;
-//	}
-//	inline void assignURI(URI type, double probability) {
-//		this->typeProbability[type] = probability;
-//	}
-//private:
-//	string colId;
-//	map<URI,double> typeProbability;
-//};
+
+/*
+ * Compute the probability of each TablePattern
+ */
 map<TablePattern,double> getTpProbability(const vector<TablePattern>& tps);
 
+/*
+ * Compute the type distribution for some columns
+ */
 map<string,TypeDistribution> getColTypeDistribution(const vector<TablePattern>& tps);
 
-map<ColPair,TypeDistribution> matchSchema(const TablePattern& tp1, const TablePattern& tp2);
+/*
+ * Compute the agreed type distribution for a pair of columns
+ */
+map<ColPair,TypeDistribution> matchSchema(const WebTable& wt1, const WebTable& wt2);
+
