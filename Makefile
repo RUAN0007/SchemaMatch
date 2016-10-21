@@ -27,7 +27,7 @@ DEP_DEBUG =
 OUTDIR_DEBUG = bin/debug
 
 OBJ_DEBUG =  $(OBJDIR_DEBUG)/WebTable.o $(OBJDIR_DEBUG)/jsoncpp.o $(OBJDIR_DEBUG)/TablePattern.o  \
-$(OBJDIR_DEBUG)/SchemaMatching.o $(OBJDIR_DEBUG)/CrowdSourcing.o $(OBJDIR_DEBUG)/debug.o
+$(OBJDIR_DEBUG)/SchemaMatching.o  $(OBJDIR_DEBUG)/debug.o
 
 OBJ_MAIN_DEBUG = $(OBJDIR_DEBUG)/main.o
 
@@ -84,9 +84,6 @@ $(OBJDIR_DEBUG)/TablePattern.o: $(SRC)/TablePattern.cpp $(HEADER_DIR)/TablePatte
 
 $(OBJDIR_DEBUG)/SchemaMatching.o: $(SRC)/SchemaMatching.cpp $(HEADER_DIR)/SchemaMatching.h
 	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC)/SchemaMatching.cpp -o $(OBJDIR_DEBUG)/SchemaMatching.o
-
-$(OBJDIR_DEBUG)/CrowdSourcing.o: $(SRC)/CrowdSourcing.cpp $(HEADER_DIR)/CrowdSourcing.h
-	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC)/CrowdSourcing.cpp -o $(OBJDIR_DEBUG)/CrowdSourcing.o
 
 $(OBJDIR_DEBUG)/debug.o: $(SRC)/debug.cpp $(HEADER_DIR)/debug.h
 	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC)/debug.cpp -o $(OBJDIR_DEBUG)/debug.o

@@ -3,7 +3,6 @@
 using namespace std;
 #include <vector>
 #include <map>
-#include "SchemaMatching.h"
 #include "TablePattern.h"
 
 typedef pair<string,string> ColPair;
