@@ -16,7 +16,7 @@
 #include "debug.h"
 
 static char* LOGFILE = nullptr;
-#define LOG_LEVEL LOG_DEBUG
+#define LOG_LEVEL LOG_INFO
 
 void _LogRaw(int level, const char* msg) {
     const char *c = ".-*#";
