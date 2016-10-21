@@ -28,6 +28,10 @@ int Crowdsourcing::postColMatching(const map<string, vector<string>>& candidateM
 map<string,string> Crowdsourcing::getColMatching(int jobID) const{
 	map<string,string> matching;
 	//read the file for the matching answer
+
+	//for testing purpose
+//	matching["WTA_1"] = "WTB_0";
+//	matching["WTB_2"] = "N.A.";
 	return matching;
 }
 bool Crowdsourcing::hasJobFinished(int jobID) const{
