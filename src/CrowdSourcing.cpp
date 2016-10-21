@@ -4,6 +4,7 @@
 #include <math.h>
 #include <algorithm>
 #include <json.h>
+#include "debug.h"
 int Crowdsourcing::postColTypeCorrespondece(const map<string,vector<URI>>& candidateCorrespondece,
 											const WebTable& wt) const {
 	//Write the question to file so that a python program can read and post the question
@@ -53,7 +54,7 @@ int SchemaMatcher::askTablePattern( WebTable& webTable,unsigned int maxQuestion)
 		tps.pop();
 	}
 	//compute the entropy of each column and sort the column based on the entropy in decreasing order
-	map<string,map<URI,double>> colTypeDistr = getColTypeDistribution(tpv);
+	map<string,map<URI,double>> colTypeDistr = this->getColTypeDistribution(tpv);
 //	cout << "Col Type Dist Size: " << colTypeDistr.size() << endl;
 	vector<pair<string,double>> colEntropy;
 	for(const auto& kv:colTypeDistr) {
@@ -195,6 +196,9 @@ bool SchemaMatcher::isTablePatternReady(int jobID) const{
 
 int SchemaMatcher::askSchemaMatching(const WebTable& wt1, const WebTable& wt2, unsigned int maxQuestion) const {
 	//Get the jointTypeDistribution for wt1 and wt2
+//	map<ColPair,TypeDistribution> colPairTypeDistr = this->tpGe
+
+
 	//reorganize the jointTypeDistribution to map<string,vector<pair<string,double>>>
 	//write the above to file based on the below order
 
@@ -218,4 +222,130 @@ vector<ColPair> SchemaMatcher::getSchemaMatching(int jobID) const {
 	//If there are more candidate matching, choose the one with high score
 	return vector<ColPair>();
 
+}
+
+map<ColPair,TypeDistribution> SchemaMatcher::matchSchema(const WebTable& wt1,
+										  const WebTable& wt2) const{
+
+	priority_queue<TablePattern> tpq1 = this->tpGen.generatePatterns(wt1, 2);
+	priority_queue<TablePattern> tpq2 = this->tpGen.generatePatterns(wt2, 2);
+
+	vector<TablePattern> tpv1 = pq2v(&tpq1);
+	vector<TablePattern> tpv2 = pq2v(&tpq2);
+
+	map<string, TypeDistribution> colTypeDist1 = this->getColTypeDistribution(tpv1);
+	map<string, TypeDistribution> colTypeDist2 = this->getColTypeDistribution(tpv2);
+
+	map<ColPair,TypeDistribution> colPairDist = this->computeJointDist(colTypeDist1,colTypeDist2);
+	return colPairDist;
+
+}
+
+map<ColPair, TypeDistribution> SchemaMatcher::computeJointDist(const map<string, TypeDistribution>& ctd1,
+		 	 	 	 	 	 	 	 	 	 	const map<string, TypeDistribution>& ctd2) const{
+	map<ColPair, TypeDistribution> jointDist;
+
+	map<string, TypeDistribution>::const_iterator ctd1It = ctd1.begin();
+
+	for(;ctd1It != ctd1.end();ctd1It++) {
+		string col1 = ctd1It->first;
+		TypeDistribution td1 = ctd1It->second;
+		map<string, TypeDistribution>::const_iterator ctd2It = ctd2.begin();
+		for(;ctd2It != ctd2.end();ctd2It++) {
+			string col2 = ctd2It->first;
+			TypeDistribution td2 = ctd2It->second;
+			TypeDistribution typeJointDist = getTypeJointDist(td1,td2);
+
+			if (typeJointDist.size() > 0) {
+				ColPair colPair(col1,col2);
+				jointDist[colPair] = typeJointDist;
+			}//End of if
+		}//End of for ctd2It
+	}//End of for ctd1it
+	return jointDist;
+}
+
+vector<TablePattern> SchemaMatcher::pq2v(priority_queue<TablePattern>* tpq)const{
+	vector<TablePattern> tpv;
+	while(!tpq->empty()){
+		TablePattern tp = tpq->top();
+		tpq->pop();
+		tpv.push_back(tp);
+	}
+	return tpv;
+}
+
+
+TypeDistribution SchemaMatcher::getTypeJointDist(const TypeDistribution& td1, const TypeDistribution& td2)const{
+	TypeDistribution jointDist;
+	TypeDistribution::const_iterator td1It = td1.begin();
+
+	for(;td1It != td1.end();td1It++) {
+		URI type = td1It->first;
+		double prob1 = td1It->second;
+		TypeDistribution::const_iterator typeIt = td2.find(type);
+		if (typeIt == td2.end()){
+			//This type is not found in the type distribution of the other column
+			continue;
+		}
+		double prob2 = typeIt->second;
+		jointDist[type] = prob1 * prob2;
+	}
+	return jointDist;
+}
+
+/*The structure of return results:
+ * key: colID
+ * value: possible mapping type URI and probability
+ * 		key:type URI
+ * 		value: probability (double)
+ */
+map<string,TypeDistribution> SchemaMatcher::getColTypeDistribution(const vector<TablePattern>& tps)const{
+	map<TablePattern,double> patternProb = getTpProbability(tps);
+	map<string,TypeDistribution> result;
+
+	auto patternProbIt = patternProb.begin();
+	for(;patternProbIt != patternProb.end();patternProbIt++) {
+		TablePattern tp = patternProbIt->first;
+		double tpProb = patternProbIt->second;
+		//cout << "TP Prob: " << tpProb <<endl;
+
+		for(CKEntry ck: tp.getCKEntries()) {
+			string col = ck.getColName();
+			URI type = ck.getType();
+			map<URI,double> urlMatching;
+			//cout << "I am fine" <<endl;
+			if (result.find(col) == result.end()) result[col] = urlMatching;
+			urlMatching = result[col];
+
+			if(urlMatching.find(type) == urlMatching.end()) urlMatching[type] = 0.0;
+			double prevProb = urlMatching[type];
+
+			double newProb = prevProb + tpProb;
+			urlMatching[type] = newProb;
+			result[col] = urlMatching;
+		}
+	}
+	return result;
+}
+
+
+//Probability of a table pattern = its score / (sum of score of all table patterns)
+map<TablePattern,double> SchemaMatcher::getTpProbability(const vector<TablePattern>& tps)const {
+	double norm = 0.0;
+	for (TablePattern tp:tps) {
+		double score = tp.getScore();
+		norm +=  exp(score);
+	}
+	map<TablePattern,double> result;
+
+	for (TablePattern tp:tps) {
+		double score = tp.getScore();
+		double probability = exp(score) / norm;
+		result[tp] = probability;
+	}
+	//Debug
+
+
+	return result;
 }
