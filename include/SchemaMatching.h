@@ -16,15 +16,18 @@ private:
 /*
  * Compute the type distribution for some columns
  */
-	map<string,TypeDistribution> getColTypeDistribution(const vector<TablePattern>& tps) const;
-	TypeDistribution getTypeJointDist(const TypeDistribution& td1, const TypeDistribution& td2) const;
-	vector<TablePattern> pq2v(priority_queue<TablePattern>* tpq) const;
+	static map<string,TypeDistribution> getColTypeDistribution(const vector<TablePattern>& tps);
+	static TypeDistribution getTypeJointDist(const TypeDistribution& td1, const TypeDistribution& td2);
+	static vector<TablePattern> pq2v(priority_queue<TablePattern>* tpq);
 
-	map<ColPair, TypeDistribution> computeJointDist(const map<string, TypeDistribution>& ctd1 ,
-		 	 	 	 	 	 	 	 	 	 	const map<string, TypeDistribution>& ctd2) const;
+	static map<ColPair, TypeDistribution> computeJointDist(const map<string, TypeDistribution>& ctd1 ,
+		 	 	 	 	 	 	 	 	 	 	const map<string, TypeDistribution>& ctd2);
 
-	map<TablePattern,double> getTpProbability(const vector<TablePattern>& tps) const;
+	static map<TablePattern,double> getTpProbability(const vector<TablePattern>& tps);
 
+	static map<string,map<string,double>> filterMatching(
+										const map<string,map<string,double>>& candidateMatches,
+										ColPair match);
 
 public:
 	inline SchemaMatcher(const Crowdsourcing& csPlatform,const TPGenerator tpGenerator):
