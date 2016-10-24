@@ -5,6 +5,7 @@ using namespace std;
 #include <map>
 #include "KnowledgeBase.h"
 #include "WebTable.h"
+#include "json.h"
 
 class Crowdsourcing {
 public:
