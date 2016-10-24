@@ -80,9 +80,16 @@ int SchemaMatcher::askTablePattern( WebTable& webTable,unsigned int maxQuestion)
 
 TablePattern SchemaMatcher::getTablePattern(int jobID) const{
 
-	if(!isTablePatternReady(jobID)) return TablePattern();
+	if(!isTablePatternReady(jobID)){
+
+		LOG(LOG_WARNING,"Table Pattern Job %d has not finished in crowdsourcing platform. ", jobID);
+		return TablePattern();
+	}
 	ifstream tpQuestionFile("tp_questions/TP_" + to_string(jobID) + ".json",ifstream::binary);
-	if(!tpQuestionFile.is_open()) return TablePattern();
+	if(!tpQuestionFile.is_open()) {
+		LOG(LOG_WARNING,"Info of Schema Matching Job %d has not been found in folder tp_questions. ", jobID);
+		return TablePattern();
+	}
 
 	Json::Value root;
 	Json::Reader reader;
@@ -307,12 +314,17 @@ map<string,map<string,double>> SchemaMatcher::filterMatching(
 		return remainingMatching;
 }
 vector<ColPair> SchemaMatcher::getSchemaMatching(int jobID) const {
-
 	//Retrieve the candidate column matching from the stored json file
 
-	if(!isSchemaMatchingReady(jobID)) return vector<ColPair>();
+	if(!isSchemaMatchingReady(jobID)) {
+		LOG(LOG_WARNING,"Schema Matching Job %d has not finished in crowdsourcing platform. ", jobID);
+		return vector<ColPair>();
+	}
 	ifstream smQuestionFile("sm_questions/SM_" + to_string(jobID) + ".json",ifstream::binary);
-	if(!smQuestionFile.is_open()) return vector<ColPair>();
+	if(!smQuestionFile.is_open()) {
+		LOG(LOG_FATAL,"Info of Schema Matching Job %d has not been found in folder. ", jobID, "sm_questions/");
+		return vector<ColPair>();
+	}
 
 	Json::Value root;
 	Json::Reader reader;

@@ -1,4 +1,5 @@
 #include <Crowdsourcing.h>
+#include <fstream>
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 #include "debug.h"
@@ -52,7 +53,7 @@ map<string, URI> Crowdsourcing::getColTypeCorrespondence(int jobID) const{
 	string fpath = "cs_answers/" + to_string(jobID) + ".json";
 	ifstream answerFile(fpath, ifstream::binary);
 	if(!answerFile.is_open()) {
-		LOG(LOG_FATAL,"%s does not exist.",fpath );
+		LOG(LOG_FATAL,"%s does not exist.",fpath.c_str() );
 		return correspondence;
 	}
 
@@ -60,7 +61,7 @@ map<string, URI> Crowdsourcing::getColTypeCorrespondence(int jobID) const{
 	Json::Reader reader;
 
 	if(!reader.parse(answerFile, root)){
-		LOG(LOG_FATAL, "Fail to parse %s as a json file. ", fpath);
+		LOG(LOG_FATAL, "Fail to parse %s as a json file. ", fpath.c_str());
 		return correspondence;
 	}
 
@@ -76,9 +77,7 @@ map<string, URI> Crowdsourcing::getColTypeCorrespondence(int jobID) const{
 }
 
 
-int Crowdsourcing::postColMatching(const map<string, vector<string>>& candidateMatching,
-									const WebTable& wt1,
-									const WebTable& wt2) const{
+int Crowdsourcing::postColMatching(const map<string, vector<string>>& candidateMatching, const WebTable& wt1, const WebTable& wt2) const{
 	//Write question to file so that a python program can later read
 	Json::Value wt1Node = wt1.serialize();
 	Json::Value wt2Node = wt2.serialize();
@@ -119,7 +118,7 @@ map<string,string> Crowdsourcing::getColMatching(int jobID) const{
 	string fpath = "cs_answers/" + to_string(jobID) + ".json";
 	ifstream answerFile(fpath, ifstream::binary);
 	if(!answerFile.is_open()) {
-		LOG(LOG_FATAL,"%s does not exist.",fpath );
+		LOG(LOG_FATAL,"%s does not exist.",fpath.c_str() );
 		return matching;
 	}
 
@@ -127,7 +126,7 @@ map<string,string> Crowdsourcing::getColMatching(int jobID) const{
 	Json::Reader reader;
 
 	if(!reader.parse(answerFile, root)){
-		LOG(LOG_FATAL, "Fail to parse %s as a json file. ", fpath);
+		LOG(LOG_FATAL, "Fail to parse %s as a json file. ", fpath.c_str());
 		return matching;
 	}
 
