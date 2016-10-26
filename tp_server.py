@@ -8,16 +8,16 @@ app = Flask(__name__)
 import config
 
 timon_url = config.timon_url
-server_url = config.server_url
-job_id = config.job_id
+server_url = config.tp_server_url
+job_id = config.tp_job_id
 debug = config.debug 
-port = config.port 
-questionInfoPath = config.questionInfoPath
-tempAnswerPath = config.tempAnswerPath
-postedQuestionPath = config.postedQuestionPath
-questionDirPath = config.questionDirPath
-questionFinishPath = config.questionFinishPath
-finalAnswerPath = config.finalAnswerPath
+port = config.tp_port 
+questionInfoPath = config.tp_questionInfoPath
+tempAnswerPath = config.tp_tempAnswerPath
+postedQuestionPath = config.tp_postedQuestionPath
+questionDirPath = config.tp_questionDirPath
+questionFinishPath = config.tp_questionFinishPath
+finalAnswerPath = config.tp_finalAnswerPath
 
 create_api = "/api/jobs/"+str(job_id)+"/entities"
 detail_api = "/api/entities/"
@@ -94,7 +94,7 @@ def handle_callback():
                     question_file = os.path.join(questionDirPath, question_filename)
                     with open(question_file) as f:
                         question = json.load(f)
-                    print "Create entity for qid ", qid
+                   # print "Create entity for qid ", qid
                     entityCreated = True
                     entity = Entity()
                     entity.add_info("question",question)
@@ -109,8 +109,8 @@ def handle_callback():
                         print "Post entity failed..."
                         print r.text 
 
-                    print "q2e: ", q2e
-                    print "e2q: ",e2q
+                    #print "q2e: ", q2e
+                    #print "e2q: ",e2q
                     with open(postedQuestionPath,"w") as f:
                         json.dump(q2e,f)
 
@@ -119,12 +119,8 @@ def handle_callback():
                 #   j2q: jobID -> a list of Qid
                 #   q2j: Qid -> jobID
                 if entityCreated:
-                    print "Before loading questionV info: "
-                    print "j2q: ",j2q," q2j: ",j2q
                     
                     load_question_info()
-                    print "After loading questionV info: "
-                    print "j2q: ",j2q," q2j: ",j2q
 
 
             elif request_type == "ENTITY_FINISHED":
@@ -144,19 +140,19 @@ def handle_callback():
                 qid = e2q[entity_id]
                 jid = q2j[qid]
 
-                print "Finishing Entity ID: ", entity_id
-                print "Answers: ", answers
-                print "Info: ",info
-                print "Question: ",question
-                print "Qid: ", qid
-                print "Jid: ", jid
-                print "j2q: ",j2q
-                print "q2j: ",q2j
+                # print "Finishing Entity ID: ", entity_id
+                # print "Answers: ", answers
+                # print "Info: ",info
+                # print "Question: ",question
+                # print "Qid: ", qid
+                # print "Jid: ", jid
+                # print "j2q: ",j2q
+                # print "q2j: ",q2j
                 e2q.pop(entity_id,None)
                 q2e.pop(qid,None)
-                print "Poping this entity/question: "
-                print "e2q: ",e2q
-                print "q2e: ",q2e
+                # print "Poping this entity/question: "
+                # print "e2q: ",e2q
+                # print "q2e: ",q2e
                 with open(postedQuestionPath,"w") as f:
                     json.dump(q2e,f)
 
