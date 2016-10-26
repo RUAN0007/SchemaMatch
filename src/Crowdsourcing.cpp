@@ -35,7 +35,7 @@ int Crowdsourcing::postColTypeCorrespondece(const map<string,vector<URI>>& candi
 	for(const auto& corr: candidateCorrespondece) {
 
 		int questionID = rand() % 9000 + 1000; //QuestionID is a random integer from [1000,9999]
-		questionInfoNode.append(questionID);
+		questionInfoNode.append("TP" + to_string(questionID));
 		string col = corr.first;
 		vector<URI> types = corr.second;
 
@@ -123,7 +123,7 @@ int Crowdsourcing::postColMatching(const map<string, vector<string>>& candidateM
 	Json::Value questionInfoNode;
 	for(const auto& match: candidateMatching) {
 		int questionID = rand() % 9000 + 1000; //QuestionID is a random integer from [1000,9999]
-		questionInfoNode.append(questionID);
+		questionInfoNode.append("SM" + to_string(questionID));
 
 		Json::Value questionRoot;
 		Json::Value matchingNode;
