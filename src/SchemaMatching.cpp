@@ -6,6 +6,9 @@
 #include <json.h>
 #include "debug.h"
 
+string smInfoDir = "sm_info";
+string tpInfoDir = "tp_info";
+
 int SchemaMatcher::askTablePattern( WebTable& webTable,unsigned int maxQuestion) const{
 	//generate a list of candidate table pattern for the web table.
 
@@ -71,7 +74,7 @@ int SchemaMatcher::askTablePattern( WebTable& webTable,unsigned int maxQuestion)
 	root["query_cols"] = queryColNode;
 
 	ofstream tpQuestionFile;
-	tpQuestionFile.open("tp_questions/TP_" + to_string(jobID) + ".json",std::ios::out);
+	tpQuestionFile.open(tpInfoDir + "/TP_" + to_string(jobID) + ".json",std::ios::out);
 	tpQuestionFile << root.toStyledString();
 	tpQuestionFile.close();
 
@@ -85,7 +88,7 @@ TablePattern SchemaMatcher::getTablePattern(int jobID) const{
 		LOG(LOG_WARNING,"Table Pattern Job %d has not finished in crowdsourcing platform. ", jobID);
 		return TablePattern();
 	}
-	ifstream tpQuestionFile("tp_questions/TP_" + to_string(jobID) + ".json",ifstream::binary);
+	ifstream tpQuestionFile(tpInfoDir + "/TP_" + to_string(jobID) + ".json",ifstream::binary);
 	if(!tpQuestionFile.is_open()) {
 		LOG(LOG_WARNING,"Info of Schema Matching Job %d has not been found in folder tp_questions. ", jobID);
 		return TablePattern();
@@ -281,7 +284,7 @@ int SchemaMatcher::askSchemaMatching(const WebTable& wt1, const WebTable& wt2, u
 	root["candidate_match"] = matchingNode;
 
 	ofstream smQuestionFile;
-	smQuestionFile.open("sm_questions/SM_" + to_string(jobID) + ".json",std::ios::out);
+	smQuestionFile.open(smInfoDir + "/SM_" + to_string(jobID) + ".json",std::ios::out);
 	smQuestionFile << root.toStyledString();
 	smQuestionFile.close();
 
@@ -320,7 +323,7 @@ vector<ColPair> SchemaMatcher::getSchemaMatching(int jobID) const {
 		LOG(LOG_WARNING,"Schema Matching Job %d has not finished in crowdsourcing platform. ", jobID);
 		return vector<ColPair>();
 	}
-	ifstream smQuestionFile("sm_questions/SM_" + to_string(jobID) + ".json",ifstream::binary);
+	ifstream smQuestionFile(smInfoDir + "/SM_" + to_string(jobID) + ".json",ifstream::binary);
 	if(!smQuestionFile.is_open()) {
 		LOG(LOG_FATAL,"Info of Schema Matching Job %d has not been found in folder. ", jobID, "sm_questions/");
 		return vector<ColPair>();
