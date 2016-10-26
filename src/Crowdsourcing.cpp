@@ -189,7 +189,11 @@ map<string,string> Crowdsourcing::getColMatching(int jobID) const{
 bool Crowdsourcing::hasJobFinished(int jobID) const{
 	//check whether the job has finished by checking whether the jobID json file exists in cs_answers/
 
-	string fpath = "cs_answers/" + to_string(jobID) + ".json";
+	string fpath = tpAnswerDir + to_string(jobID) + ".json";
 	ifstream answerFile(fpath, ifstream::binary);
-	return answerFile.good();
+	if(answerFile.good()) return true;
+
+	fpath = smAnswerDir + to_string(jobID) + ".json";
+	ifstream smAnswerFile(fpath, ifstream::binary);
+	return smAnswerFile.good();
 }
