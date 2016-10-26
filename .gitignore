@@ -9,6 +9,7 @@ dice-engine/SchemaMatching/webtable/
 .project
 .cproject
 .settings/
-*questions/
-*answers/
-*_info/
+tp_*/
+sm_*/
+cs_*/
+**/*.pyc
