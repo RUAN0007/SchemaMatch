@@ -1,0 +1,176 @@
+<div class="page page-work">
+    <div id="work-message">
+        <h2 id="message"></h2>
+    </div>
+    <div id="work-content">
+        <div id="question">
+        </div>
+        <form>
+           <br/>
+           <button id="submit" class="btn btn-lg btn-success pull-right">Submit</button>
+        </form>
+        <h3 id='console' style='color:red'>
+        </h3>
+    </div>
+</div>
+
+<style>
+  img {
+     height: 200px;
+     margin: 10px; 
+  }
+  img.selected{
+      opacity:0.2;
+  }
+
+</style>
+
+<script language="javascript">
+
+    console.log("hello world!");
+    var worker = new Worker();
+    worker.fetch(nextProblem);
+    var match_col;
+    var table1_name;
+    var table2_name;
+
+    function tableHTML(web_table_node) {
+        var table_name = web_table_node.name;
+        var table_html = '<table class="table table-striped">';
+        table_html += '<caption>';
+        table_html += table_name;
+        table_html += '</caption>';
+        table_html += '<tr>';
+        //Create table header
+        var headers = [];
+        var tuple_count = 0;
+        for(var i in web_table_node.headers) {
+            table_html += '<th>';
+            header = web_table_node.headers[i];
+            table_html += header;
+            table_html += '</th>';
+
+            headers.push(header)
+            tuple_count = web_table_node[header].length
+        }
+        table_html += '</tr>';
+
+        for(var i = 0;i < tuple_count;i++) {
+            table_html += '<tr>';
+            for(var j = 0;j < headers.length;j++) {
+                table_html += '<td>';
+                table_html += web_table_node[headers[j]][i];
+                table_html += '</td>';
+            }
+            table_html += '</tr>';
+        }
+
+        table_html += '</table>';
+
+        return table_html;
+    }
+
+
+    function optionHTML(table1_name, table2_name, match_node) {
+        
+        var optionHTML = '<h1>';
+        //Below loop only iterate once.
+        for(var col in corr_node) {
+            match_col = col;
+            optionHTML += 'Which column in Table ';
+            optionHTML += table2_name;
+            optionHTML += ' does Table ';
+            optionHTML ++ table1_name;
+            optionHTML += ' Column ';
+            optionHTML +=  col;
+            optionHTML += " match to? "
+            optionHTML += '</h1>'
+
+            optionHTML += '<form>';
+            var types = match_node[col];
+            for(var i in types) {
+                type = types[i];
+
+                optionHTML += '<input type="radio" name="match" value="'
+                optionHTML += type;
+                optionHTML += '"';
+                if(i == 0) {
+                    optionHTML += ' checked ';
+                }
+                optionHTML += '>';
+                optionHTML += type;
+                optionHTML += '<br>';
+            }//End for var i
+            optionHTML += '</form>'
+        }//End for var col
+
+        return optionHTML;
+
+    }
+
+    function nextProblem(){
+        if(!worker.hasEntity()){
+            $("#work-message").show();
+            $("#work-content").hide(); 
+            $("#message").html("Fetching works for you, please wait!")
+            setTimeout(nextProblem,2000);
+            return;
+        }else{
+            var entity=worker.nextEntity(); 
+            $("#work-message").hide();
+            $("#work-content").show(); 
+            var question = entity.getInfo('question');
+
+            console.log(question);
+
+            var table1_html = tableHTML(question.wt1);
+            table1_name = question.wt1.name;
+            var table2_html = tableHTML(question.wt2);
+            table2_name = question.wt2.name;
+            var option_html = optionHTML(table1_name, table2_name, question.match);
+
+            $("#question").empty();
+            $("#question").append(table_html).append(option_html);
+
+            // var question_html= $("<h2>Please click the pictures that do <span style='color:red'>NOT</span> belong to <a style='color:red' href='https://www.google.com.sg/search?rct=j&q="+question.label+"' target='_blank'> "+question.label+"?</a></h2>");     
+            // var image_html= "";
+            // for (var i in question.images){
+            //     var image = question.images[i];
+            //     image_html+="<img name='"+image.name+"' pk='"+image.pk+"'src='"+image.url+"'/>";
+            // }
+            
+            // $("#question").append(question_html).append(image_html);
+            // $("img").on("click",function(e){
+            //     $(this).toggleClass("selected");
+            // });
+            
+            return;
+        }
+    }
+    
+    $("#submit").on("click",function(){
+        submit(); 
+        
+    }); 
+    function submit(){
+
+
+        var selected_col  = $('input[name="match"]:checked').val();
+
+        var answer= new Object();
+        answer[match_col] = selected_col
+        // $("img").each(function(index,img){
+        //     image={'pk':$(img).attr('pk'),name:$(img).attr('name')}
+        //     if ($(img).hasClass("selected")){
+        //         image['value']='discard';
+        //     }else{
+        //         image['value']='reserve';
+        //     }
+        //     answer.push(image);
+        // });
+        // alert("Submitting Answer: " + match_col + " -> " + selected_type);
+        worker.submitAnswer({'match':answer});
+        nextProblem();
+    }
+
+</script>
