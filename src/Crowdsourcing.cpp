@@ -54,8 +54,9 @@ int Crowdsourcing::postColTypeCorrespondece(const map<string,vector<URI>>& candi
 		tpQuestionFile << questionRoot.toStyledString();
 		tpQuestionFile.close();
 	}
-
-	//cout <<questionInfoNode.toStyledString() << endl;
+//	cout << candidateCorrespondece.size() << endl;
+//	cout <<" Question Info Node: " << endl;
+//	cout <<questionInfoNode.toStyledString() << endl;
 	infoRoot[to_string(jobID)] = questionInfoNode;
 //	cout << infoRoot.toStyledString() << endl;
 	ofstream infoFile;
@@ -100,9 +101,8 @@ map<string, URI> Crowdsourcing::getColTypeCorrespondence(int jobID) const{
 	return correspondence;
 }
 
+Json::Value getPreInfo() {
 
-int Crowdsourcing::postColMatching(const map<string, vector<string>>& candidateMatching, const WebTable& wt1, const WebTable& wt2) const{
-	//Write question to file so that a python program can later read
 	Json::Value infoRoot;
 
 	Json::Reader reader;
@@ -114,6 +114,33 @@ int Crowdsourcing::postColMatching(const map<string, vector<string>>& candidateM
 			LOG(LOG_FATAL, "Fail to parse %s as a json file. ", tpInfoPath.c_str());
 		}
 	}
+	return infoRoot;
+}
+
+bool dumpJobInfo(Json::Value infoRoot, int jobID) {
+
+
+	ofstream smInfoOutputFile;
+	smInfoOutputFile.open(smInfoPath,std::ios::out);
+	smInfoOutputFile << infoRoot.toStyledString();
+	smInfoOutputFile.close();
+
+	return true;
+}
+
+bool dumpQuestionInf(Json::Value questionRoot, int questionID) {
+
+		ofstream smQuestionFile;
+		smQuestionFile.open(smQuestionDir + "SM" + to_string(questionID) + ".json",std::ios::out);
+		smQuestionFile << questionRoot.toStyledString();
+		smQuestionFile.close();
+		return true;
+}
+
+int Crowdsourcing::postColMatching(const map<string, vector<string>>& candidateMatching, const WebTable& wt1, const WebTable& wt2) const{
+	//Write question to file so that a python program can later read
+
+	Json::Value infoRoot = getPreInfo();
 	srand(time(NULL));
 	int jobID = rand() % 1000; //select a random 4-digit integer as a job ID
 
@@ -140,19 +167,30 @@ int Crowdsourcing::postColMatching(const map<string, vector<string>>& candidateM
 		questionRoot["wt2"] = wt2Node;
 		questionRoot["match"] = matchingNode;
 
-		ofstream smQuestionFile;
-		smQuestionFile.open(smQuestionDir + "SM" + to_string(questionID) + ".json",std::ios::out);
-		smQuestionFile << questionRoot.toStyledString();
-		smQuestionFile.close();
+		dumpQuestionInf(questionRoot, questionID);
+	}
+	infoRoot[to_string(jobID)] = questionInfoNode;
+	dumpJobInfo(infoRoot, jobID);
+	return jobID;
+}
+
+Json::Value getSMAnswerJson(int jobID) {
+
+	Json::Value root;
+	Json::Reader reader;
+
+	string fpath = smAnswerDir + to_string(jobID) + ".json";
+	ifstream answerFile(fpath, ifstream::binary);
+	if(!answerFile.is_open()) {
+		LOG(LOG_FATAL,"%s does not exist.",fpath.c_str() );
 	}
 
-	infoRoot[to_string(jobID)] = questionInfoNode;
 
-	ofstream smInfoOutputFile;
-	smInfoOutputFile.open(smInfoPath,std::ios::out);
-	smInfoOutputFile << infoRoot.toStyledString();
-	smInfoOutputFile.close();
-	return jobID;
+	if(!reader.parse(answerFile, root)){
+		LOG(LOG_FATAL, "Fail to parse %s as a json file. ", fpath.c_str());
+	}
+
+	return root;
 }
 
 map<string,string> Crowdsourcing::getColMatching(int jobID) const{
@@ -162,21 +200,8 @@ map<string,string> Crowdsourcing::getColMatching(int jobID) const{
 	//for testing purpose
 //	matching["WTA_1"] = "WTB_0";
 //	matching["WTB_2"] = "N.A.";
-	string fpath = smAnswerDir + to_string(jobID) + ".json";
-	ifstream answerFile(fpath, ifstream::binary);
-	if(!answerFile.is_open()) {
-		LOG(LOG_FATAL,"%s does not exist.",fpath.c_str() );
-		return matching;
-	}
 
-	Json::Value root;
-	Json::Reader reader;
-
-	if(!reader.parse(answerFile, root)){
-		LOG(LOG_FATAL, "Fail to parse %s as a json file. ", fpath.c_str());
-		return matching;
-	}
-
+	Json::Value root = getSMAnswerJson(jobID);
 	Json::Value colNode = root["cols"];
 	Json::Value matchesNode = root["matches"];
 	for(unsigned int i = 0;i < colNode.size();i++) {

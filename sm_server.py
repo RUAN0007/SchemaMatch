@@ -58,6 +58,7 @@ class Entity:
                            ))
 
 
+
 def handle_callback():
     j2q = load_question_info()
     q2j = dict()
@@ -81,19 +82,8 @@ def handle_callback():
                 # Update the posted question list and write this list to file
                 # Send the remaining questions to Timon
                 entityCreated = False
-                for question_filename in os.listdir(questionDirPath):
-                    if question_filename.endswith("sm_info.json"):
-                        continue
-
-                    qid = question_filename.split(".")[0]
-
-                    if q2e.has_key(qid):
-                        #This question has been posted before
-                        continue
-
-                    question_file = os.path.join(questionDirPath, question_filename)
-                    with open(question_file) as f:
-                        question = json.load(f)
+                qids, to_post_questions = getUnpostedQuestion(q2e)
+                for qid, question in zip(qids, to_post_questions): 
                    # print "Create entity for qid ", qid
                     entityCreated = True
                     entity = Entity()
@@ -111,8 +101,7 @@ def handle_callback():
 
                     #print "q2e: ", q2e
                     #print "e2q: ",e2q
-                    with open(postedQuestionPath,"w") as f:
-                        json.dump(q2e,f)
+                    dump_posted_questions(q2e)
 
                 # retrieve the updated sm info from file
                 # Construct two data structure
@@ -153,16 +142,13 @@ def handle_callback():
                 # print "Poping this entity/question: "
                 # print "e2q: ",e2q
                 # print "q2e: ",q2e
-                with open(postedQuestionPath,"w") as f:
-                    json.dump(q2e,f)
+                dump_posted_questions(q2e)
 
-                #Move json questions to finish dir
-                question_filename = qid + ".json"
-                from_path = os.path.join(questionDirPath, question_filename)
-                to_path = os.path.join(questionFinishPath,question_filename)
-                os.rename(from_path,to_path)
+                desert_question(qid) 
+
 
                 temp_answers[qid] = answers[0]["match"]
+                #Check whether all the questions in the job is finished
                 job_finished = True
                 for q_in_j in j2q[jid]:
                     if not temp_answers.has_key(q_in_j):
@@ -171,7 +157,6 @@ def handle_callback():
 
                 if job_finished:
                     print "Finish Job ",jid
-                    answer_file_path = os.path.join(finalAnswerPath, str(jid) + ".json")
                     sm_answers = dict()
                     match_answers = dict()
                     cols = []
@@ -185,12 +170,10 @@ def handle_callback():
                     sm_answers["cols"] = cols
                     sm_answers["matches"] = match_answers
 
-                    with open(answer_file_path,"w") as f:
-                        json.dump(sm_answers, f)
 
-                with open(tempAnswerPath, "w") as f:
-                    print "Dumping temp answers"
-                    json.dump(temp_answers,f)
+                    dump_job_answer(jid, sm_answers)
+
+                dump_temp_answers(temp_answers)
 
                 # Remove this entity from timon
                 try:
@@ -219,50 +202,48 @@ def callback():
     callback_queue.put((request_type,entity_id))
     return success() 
 
-# def create_entities(questions):
-#     for question in questions:
-#         if question.has_key("id"):
-#            continue
-#         else:
-#            create_entity(question)
-#     return
+def getUnpostedQuestion(q2e):
+    '''
+        Get a list of unposted questions
+    '''
+    new_questions = []
+    qids = []
+    for question_filename in os.listdir(questionDirPath):
+        if question_filename.endswith("sm_info.json"):
+            continue
 
-# def create_entity(question):
-#     entity = Entity()
-#     entity.add_info("question",question)
-#     headers = {'Accept': 'application/json','Content-Type':'application/json;charset=UTF-8'}
-#     r = req.post(timon_url+create_api,data=entity.to_json(),headers=headers)
-#     if r.ok:
-#         result= r.json()
-#         question["id"]=result["id"]
-#     else:
-#         print r.text
-#     return
+        qid = question_filename.split(".")[0]
+        if q2e.has_key(qid):
+            #This question has been posted before
+            continue
 
-# def load_data():
-#     if os.path.exists(store_file):
-#         data_str = open(store_file,"rb").read()
-#         if not data_str:
-#             data_str= "[]"
-#     else:
-#         data_str = "[]"
-#     data = json.loads(data_str)
-#     return data
+        qids.append(qid)
+        question_file = os.path.join(questionDirPath, question_filename)
+        with open(question_file) as f:
+            question = json.load(f)
+        new_questions.append(question)
 
-# def save_data(data):
-#     f = open(store_file,"wb") 
-#     data_str = json.dumps(data)
-#     f.write(data_str)
-#     f.flush()
-#     f.close()
-#     return
+    return qids, new_questions
 
-# def log(data):
-#     f = open(log_file,"ab")
-#     f.write(data)
-#     f.flush()
-#     f.close()
-#     return
+
+def desert_question(qid):
+
+    #Move json questions to finish dir
+    #This procedure is optional
+    question_filename = qid + ".json"
+    from_path = os.path.join(questionDirPath, question_filename)
+    to_path = os.path.join(questionFinishPath,question_filename)
+    print "from path: ", from_path
+    print "to path: ", to_path
+    # input()
+    os.rename(from_path,to_path)
+
+def dump_job_answer(jid, sm_answers):
+
+    answer_file_path = os.path.join(finalAnswerPath, str(jid) + ".json")
+    with open(answer_file_path,"w") as f:
+        json.dump(sm_answers, f)
+
 
 def load_question_info():
     print "Loading Question Info: "
@@ -281,6 +262,10 @@ def load_posted_questions():
 
     return q2e
 
+def dump_posted_questions(q2e):
+
+    with open(postedQuestionPath,"w") as f:
+        json.dump(q2e,f)
 
 def load_temp_answers():
     temp_answers = dict()
@@ -290,15 +275,10 @@ def load_temp_answers():
         temp_answers = json.load(f)
     return temp_answers
 
-
-# def init():
-#     # read question_info file
-#     load_question_info()
-#     # Read posted question list
-#     load_posted_questions()
-#     # Read temporal answers
-#     load_temp_answers()
-
+def dump_temp_answers(temp_answers):
+    with open(tempAnswerPath, "w") as f:
+        print "Dumping temp answers"
+        json.dump(temp_answers,f)
 
    
 if __name__ == "__main__":

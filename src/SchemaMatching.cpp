@@ -170,6 +170,15 @@ bool SchemaMatcher::isTablePatternReady(int jobID) const{
 	return this->crowdPlatform.hasJobFinished(jobID);
 }
 
+bool dumpSMInfo(const Json::Value& root, int jobID) {
+	ofstream smQuestionFile;
+	smQuestionFile.open(smInfoDir + "/SM_" + to_string(jobID) + ".json",std::ios::out);
+	if(!smQuestionFile.is_open()) return false;
+	smQuestionFile << root.toStyledString();
+	smQuestionFile.close();
+	return true;
+}
+
 int SchemaMatcher::askSchemaMatching(const WebTable& wt1, const WebTable& wt2, unsigned int maxQuestion) const {
 	//Get the jointTypeDistribution for wt1 and wt2
 	map<ColPair,TypeDistribution> colPairTypeDistr = this->matchSchema(wt1, wt2);
@@ -283,17 +292,14 @@ int SchemaMatcher::askSchemaMatching(const WebTable& wt1, const WebTable& wt2, u
 	root["cols"] = colsNode;
 	root["candidate_match"] = matchingNode;
 
-	ofstream smQuestionFile;
-	smQuestionFile.open(smInfoDir + "/SM_" + to_string(jobID) + ".json",std::ios::out);
-	smQuestionFile << root.toStyledString();
-	smQuestionFile.close();
-
+	dumpSMInfo(root, jobID);
 	return jobID;
 }
 
 bool SchemaMatcher::isSchemaMatchingReady(int jobID) const {
 	return this->crowdPlatform.hasJobFinished(jobID);
 }
+
 
 map<string,map<string,double>> SchemaMatcher::filterMatching(
 										const map<string,map<string,double>>& candidateMatches,
@@ -316,6 +322,20 @@ map<string,map<string,double>> SchemaMatcher::filterMatching(
 		}//End of for candidataMatch
 		return remainingMatching;
 }
+
+Json::Value getSMInfo(int jobID) {
+	Json::Value root;
+	Json::Reader reader;
+
+	ifstream smQuestionFile(smInfoDir + "/SM_" + to_string(jobID) + ".json",ifstream::binary);
+	if(!smQuestionFile.is_open()) {
+		LOG(LOG_FATAL,"Info of Schema Matching Job %d has not been found in folder. ", jobID, "sm_questions/");
+	}
+	if(!reader.parse(smQuestionFile, root)){
+		cout << "Fail to parse schema matching job " + to_string(jobID) << endl;
+	}
+	return root;
+}
 vector<ColPair> SchemaMatcher::getSchemaMatching(int jobID) const {
 	//Retrieve the candidate column matching from the stored json file
 
@@ -323,23 +343,9 @@ vector<ColPair> SchemaMatcher::getSchemaMatching(int jobID) const {
 		LOG(LOG_WARNING,"Schema Matching Job %d has not finished in crowdsourcing platform. ", jobID);
 		return vector<ColPair>();
 	}
-	ifstream smQuestionFile(smInfoDir + "/SM_" + to_string(jobID) + ".json",ifstream::binary);
-	if(!smQuestionFile.is_open()) {
-		LOG(LOG_FATAL,"Info of Schema Matching Job %d has not been found in folder. ", jobID, "sm_questions/");
-		return vector<ColPair>();
-	}
 
-	Json::Value root;
-	Json::Reader reader;
-
-	if(!reader.parse(smQuestionFile, root)){
-		cout << "Fail to parse schema matching job " + to_string(jobID) << endl;
-		return vector<ColPair>();
-	}
+	Json::Value root = getSMInfo(jobID);
 	Json::Value colsNode = root["cols"];
-//	root["query_cols"] = queryColNode;
-//	root["cols"] = colsNode;
-//	root["candidate_match"] = matchingNode;
 	vector<string> cols;
 	for(unsigned int i = 0;i < colsNode.size();i++) { cols.push_back(colsNode[i].asString()); }
 
