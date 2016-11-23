@@ -3,12 +3,12 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 #include "debug.h"
-string tpQuestionDir = "tp_questions/";
-string tpAnswerDir = "tp_answers/";
-string tpInfoPath = tpQuestionDir + "tp_info.json";
-string smQuestionDir = "sm_questions/";
-string smInfoPath = smQuestionDir + "sm_info.json";
-string smAnswerDir = "sm_answers/";
+string tpQuestionDir = "tp_questions/"; //Directory containing the table pattern crowdsourcing question info
+string tpAnswerDir = "tp_answers/"; //Directory containing the crowdsourcing answer for table pattern
+string tpInfoPath = tpQuestionDir + "tp_info.json"; //File containing the mapping between jobID to a list of questionID
+string smQuestionDir = "sm_questions/"; //Directory containing schema matching crowdsourcing question
+string smInfoPath = smQuestionDir + "sm_info.json"; //File containing the mapping between jobID to a list of questionID
+string smAnswerDir = "sm_answers/"; //Directory containing the crowdsourcing answer for schema matching
 
 int Crowdsourcing::postColTypeCorrespondece(const map<string,vector<URI>>& candidateCorrespondece,
 											const WebTable& wt) const {
@@ -102,7 +102,10 @@ map<string, URI> Crowdsourcing::getColTypeCorrespondence(int jobID) const{
 }
 
 Json::Value getPreInfo() {
-
+/*
+ * Get schema matching mapping info in json format
+ * Mapping info maintains a mapping from jobID to a list of questionID
+ */
 	Json::Value infoRoot;
 
 	Json::Reader reader;
@@ -118,7 +121,9 @@ Json::Value getPreInfo() {
 }
 
 bool dumpJobInfo(Json::Value infoRoot, int jobID) {
-
+/*
+ * Dump the schema matching mapping info in json format
+ */
 
 	ofstream smInfoOutputFile;
 	smInfoOutputFile.open(smInfoPath,std::ios::out);
@@ -129,7 +134,9 @@ bool dumpJobInfo(Json::Value infoRoot, int jobID) {
 }
 
 bool dumpQuestionInf(Json::Value questionRoot, int questionID) {
-
+/*
+ * Dump the schema matching question info in json format
+ */
 		ofstream smQuestionFile;
 		smQuestionFile.open(smQuestionDir + "SM" + to_string(questionID) + ".json",std::ios::out);
 		smQuestionFile << questionRoot.toStyledString();
@@ -173,7 +180,9 @@ int Crowdsourcing::postColMatching(const map<string, vector<string>>& candidateM
 	dumpJobInfo(infoRoot, jobID);
 	return jobID;
 }
-
+/*
+ * Retrieve the answer of schema matching job based on jobID
+ */
 Json::Value getSMAnswerJson(int jobID) {
 
 	Json::Value root;
@@ -195,11 +204,7 @@ Json::Value getSMAnswerJson(int jobID) {
 
 map<string,string> Crowdsourcing::getColMatching(int jobID) const{
 	map<string,string> matching;
-	//read the file for the matching answer
-
-	//for testing purpose
-//	matching["WTA_1"] = "WTB_0";
-//	matching["WTB_2"] = "N.A.";
+	//read the file for the matching answer //for testing purpose //	matching["WTA_1"] = "WTB_0"; //	matching["WTB_2"] = "N.A.";
 
 	Json::Value root = getSMAnswerJson(jobID);
 	Json::Value colNode = root["cols"];
