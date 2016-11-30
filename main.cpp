@@ -10,7 +10,9 @@
 #include <algorithm>
 #include "include/SchemaMatching.h"
 #include "json.h"
+#include <boost/dynamic_bitset.hpp>
 using namespace std;
+using namespace boost;
 WebTable getExampleWebTable(string name="default_table");
 WebTable getExampleWebTable1(string name="default_table");
 WebTable getExampleWebTable2(string name="default_table");
@@ -24,6 +26,17 @@ void show_serialize();
 void show_crowdTablePattern();
 void show_crowSchemaMatching();
 int main(){
+//	show_crowSchemaMatching();
+//	show_getColTypes();
+	KB kb;
+	kb.init("http://epic.d1.comp.nus.edu.sg:8890/sparql");
+	KB* KBptr = &kb;
+	string value="Beijing";
+	list<URI> cTypes = KBptr->listCandidateTypes(value);
+
+	cout <<"Retured CTypes Count:" << cTypes.size()<< endl;
+
+//	show_getColTypes();
 	//show_getPairRel();
 //		show_cohScore();
 //	show_genTP();
@@ -31,11 +44,11 @@ int main(){
 //	show_typeDistribution();
 	//show_matchSchema();
 //	show_serialize();
-	show_crowSchemaMatching();
+	//show_crowSchemaMatching();
 //	LOG(LOG_DEBUG,"%d %s",2,"test string");
 	//Panic("%s","stop now!");
 //	assert(2 == 1);
-	//	show_crowdTablePattern();
+//		show_crowdTablePattern();
 }
 
 
@@ -47,13 +60,16 @@ void show_crowSchemaMatching() {
 	kb.init("http://epic.d1.comp.nus.edu.sg:8890/sparql");
 	TPGenerator tpGen(&kb);
 	SchemaMatcher schemaMatcher(cs,tpGen);
-
+//
 	int jid = schemaMatcher.askSchemaMatching(wt1, wt2, 3);
-	vector<ColPair> colPairs = schemaMatcher.getSchemaMatching(jid);
+	cout << "Construct Job ID: " << jid << endl;
 
-	for_each(colPairs.begin(),colPairs.end(),[](const ColPair colPair){
-		LOG(LOG_DEBUG, "[%s]-[%s]",colPair.first.c_str(),colPair.second.c_str());
-	});
+//	int jid = 884;
+//	vector<ColPair> colPairs = schemaMatcher.getSchemaMatching(jid);
+//
+//	for_each(colPairs.begin(),colPairs.end(),[](const ColPair colPair){
+//		cout << "[" << colPair.first << "]-[" << colPair.second << "]" << endl;
+//	});
 }
 void show_crowdTablePattern(){
 
@@ -67,12 +83,18 @@ void show_crowdTablePattern(){
 
 	WebTable wt = getExampleWebTable();
 //
-	int id = schemaMatcher.askTablePattern(wt, 1);
+	int id = schemaMatcher.askTablePattern(wt, 2);
+	cout << "Construct Table Pattern Job ID: " << id << endl;
 //
-	TablePattern tp = schemaMatcher.getTablePattern(id);
-	cout << endl;
-	cout << "Returned Table Pattern: " << endl;
-	cout << tp << endl;
+//	if(schemaMatcher.isTablePatternReady(685)) {
+//
+//		TablePattern tp = schemaMatcher.getTablePattern(685);
+//		cout << endl;
+//		cout << "Returned Table Pattern: " << endl;
+//		cout << tp << endl;
+//	}else{
+//		cout << "Table Pattern " << 685 << " has not finished. " << endl;
+//	}
 }
 
 void show_serialize() {
@@ -259,28 +281,28 @@ void show_cohScore() {
 
 //
 //
-void show_matchSchema(){
-	WebTable wt1 = getExampleWebTable1("WTA");
-	WebTable wt2 = getExampleWebTable2("WTB");
-	wt1.print();
-	cout << "--------------------------------" << endl;
-	wt2.print();
-	cout << "--------------------------------" << endl;
-
-	Crowdsourcing cs;
-	KB kb;
-	kb.init("http://epic.d1.comp.nus.edu.sg:8890/sparql");
-	TPGenerator tpGen(&kb);
+//void show_matchSchema(){
+//	WebTable wt1 = getExampleWebTable1("WTA");
+//	WebTable wt2 = getExampleWebTable2("WTB");
+//	wt1.print();
+//	cout << "--------------------------------" << endl;
+//	wt2.print();
+//	cout << "--------------------------------" << endl;
 //
-	SchemaMatcher schemaMatcher(cs,tpGen);
-	map<ColPair,TypeDistribution> matchedCol = schemaMatcher.matchSchema(wt1, wt2);
-
-	for(auto matchedIt = matchedCol.begin();matchedIt != matchedCol.end();matchedIt++) {
-		ColPair colPair = matchedIt->first;
-		cout << colPair.first << "-" << colPair.second << endl;
-		TypeDistribution jointDist = matchedIt->second;
-		for(auto jointDistIt = jointDist.begin();jointDistIt != jointDist.end();jointDistIt++) {
-			cout << "\t" << "[" << jointDistIt->second << "] " << jointDistIt->first << endl;
-		}
-	}
-}
+//	Crowdsourcing cs;
+//	KB kb;
+//	kb.init("http://epic.d1.comp.nus.edu.sg:8890/sparql");
+//	TPGenerator tpGen(&kb);
+////
+//	SchemaMatcher schemaMatcher(cs,tpGen);
+//	map<ColPair,TypeDistribution> matchedCol = schemaMatcher.matchSchema(wt1, wt2);
+//
+//	for(auto matchedIt = matchedCol.begin();matchedIt != matchedCol.end();matchedIt++) {
+//		ColPair colPair = matchedIt->first;
+//		cout << colPair.first << "-" << colPair.second << endl;
+//		TypeDistribution jointDist = matchedIt->second;
+//		for(auto jointDistIt = jointDist.begin();jointDistIt != jointDist.end();jointDistIt++) {
+//			cout << "\t" << "[" << jointDistIt->second << "] " << jointDistIt->first << endl;
+//		}
+//	}
+//}
