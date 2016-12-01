@@ -16,7 +16,7 @@ using namespace std;
 
 class dice_cs {
 public:
-
+	dice_cs(){};
 	dice_cs(string dbPath){
 		this->_diceDB = new csbc(dbPath);
 	};
@@ -45,7 +45,17 @@ public:
 	 * return:
 	 * 	a bool value to indicate whether this answer has been answered or not.
 	 */
-	bool getAnswer(int qid, string* answerPtr);
+	bool getQuestionAnswer(int qid, string* answerPtr);
+	/*
+	 * Retrieve all finished questions' answer for the job by jobiD
+	 * args:
+	 * 	jid: jobID to identify the job
+	 * 	answerListPtr:the pointer to locate a list of string which all answer will be written here
+	 * return:
+	 * 	a bool value to indicate whether the operation is successful or not.
+	 */
+	bool getJobAnswers(int jid, list<string>* answerListPtr);
+
 	/*
 	 * Prepare SQL to insert crowdsourcing question to CSTask in DICE DB
 	 */
