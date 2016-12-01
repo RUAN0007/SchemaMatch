@@ -5,7 +5,7 @@ using namespace std;
 #include <map>
 #include "TablePattern.h"
 #include "Crowdsourcing.h"
-
+#include "csbc.h"
 typedef pair<string,string> ColPair;
 typedef map<URI,double> TypeDistribution;
 
@@ -13,7 +13,7 @@ class SchemaMatcher {
 private:
 	const Crowdsourcing crowdPlatform;
 	const TPGenerator tpGen;
-
+	csbc db;
 	/*
 	 * Compute type distribution for each column based on the candidate table patterns and their score
 	 */
@@ -54,17 +54,27 @@ private:
 	 */
 	map<ColPair,TypeDistribution> matchSchema(const WebTable& wt1, const WebTable& wt2) const;
 
+	/*
+	 * Write the relevant schema matching job tuple in relation Jobs in DICE_DB
+	 */
+	bool creatDiceJob(const Json::Value& root, int jobID);
+
+	/*
+	 * Retrieve the schema matching info, such as matching candidates, from Dice DB, based on jobID
+	 */
+	bool getMatchingInfo(int jobID, Json::Value* info);
+
 public:
-	inline SchemaMatcher(const Crowdsourcing& csPlatform,const TPGenerator tpGenerator):
-			crowdPlatform(csPlatform),tpGen(tpGenerator) {
+	inline SchemaMatcher(const Crowdsourcing& csPlatform,const TPGenerator tpGenerator, csbc diceDB):
+			crowdPlatform(csPlatform),tpGen(tpGenerator), db(diceDB) {
 	}
 
 	~SchemaMatcher(){};
 
 
-	int askSchemaMatching(const WebTable& wt1, const WebTable& wt2, unsigned int maxQuestion) const;
+	int askSchemaMatching(const WebTable& wt1, const WebTable& wt2, unsigned int maxQuestion) ;
 
-	vector<ColPair> getSchemaMatching(int jobID) const;
+	vector<ColPair> getSchemaMatching(int jobID) ;
 
 };
 

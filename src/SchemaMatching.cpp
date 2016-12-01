@@ -5,20 +5,31 @@
 #include <algorithm>
 #include <json.h>
 #include "debug.h"
+#include <iostream>
+#include <sstream>
 
-
-bool dumpSMInfo(const Json::Value& root, int jobID) {
+bool SchemaMatcher::creatDiceJob(const Json::Value& root, int jobID) {
 	//insert into Job relatio with
 	//jobid = jobID
 	//crowdsourcingid = timon's job id
 	//content = root.to_string()
 
+	ostringstream sqlStream;
+	sqlStream <<  "INSERT INTO Jobs (jobid, crowdsourcingid, sql, state, content) "
+			"VALUES ";
+	sqlStream << "(" << jobID << ",";
+	sqlStream << Crowdsourcing::CSID << ",";
+	sqlStream << "" << ","; //TODO Later add sql statement here
+	sqlStream << "'" << "" << "'" << ","; //TODO Later add state informatio here
+	sqlStream << "'" + root.toStyledString() + "'" << ");";
 
+	LOG(LOG_INFO, "Create Dice Job SQL:  %s \n",sqlStream.str().c_str());
 
+	this->db.dice_dbops(sqlStream.str());
 	return true;
 }
 
-int SchemaMatcher::askSchemaMatching(const WebTable& wt1, const WebTable& wt2, unsigned int maxQuestion) const {
+int SchemaMatcher::askSchemaMatching(const WebTable& wt1, const WebTable& wt2, unsigned int maxQuestion) {
 	//Get the jointTypeDistribution for wt1 and wt2
 	map<ColPair,TypeDistribution> colPairTypeDistr = this->matchSchema(wt1, wt2);
 
@@ -125,13 +136,12 @@ int SchemaMatcher::askSchemaMatching(const WebTable& wt1, const WebTable& wt2, u
 
 	int jobID = this->crowdPlatform.postColMatching(matchingOptions, wt1, wt2);
 
-	//Dump the schema matching info to disk
 	Json::Value root;
 	root["query_cols"] = queryColNode;
 	root["cols"] = colsNode;
 	root["candidate_match"] = matchingNode;
 
-	dumpSMInfo(root, jobID);
+	this->creatDiceJob(root, jobID);
 	return jobID;
 }
 
@@ -159,17 +169,40 @@ map<string,map<string,double>> SchemaMatcher::filterMatching(
 		return remainingMatching;
 }
 
-Json::Value getSMInfo(int jobID) {
-	Json::Value root;
+bool SchemaMatcher::getMatchingInfo(int jobID, Json::Value* info) {
 
-	//Retrieve content attribute from relation Jobs based on jobID
+	ostringstream sqlStream;
+	sqlStream <<  "SELECT content FROM Jobs WHERE jobid = ";
+	sqlStream <<   jobID << ";";
 
-	return root;
+	LOG(LOG_INFO, "Get Matching Info SQL: %s",sqlStream.str().c_str());
+
+	this->db.dice_select(sqlStream.str());
+	list<string> values = csbc::result["content"];
+
+	if (values.size() == 0){
+		return false;
+	}else{
+	    Json::Reader reader;
+	    bool parsingSuccessful = reader.parse( values.front().c_str(), *info );     //parse process
+	    if ( !parsingSuccessful )
+	    {
+	        LOG(LOG_INFO, "Parse Job %d Info Failed. Message: ", jobID, reader.getFormattedErrorMessages().c_str());
+	        return false;
+	    }
+		return true;
+	}
 }
-vector<ColPair> SchemaMatcher::getSchemaMatching(int jobID) const {
-	//Retrieve the candidate column matching from the stored json file
 
-	Json::Value root = getSMInfo(jobID);
+vector<ColPair> SchemaMatcher::getSchemaMatching(int jobID){
+	//Retrieve the candidate column matching from the stored json file
+	Json::Value root;
+	bool success = this->getMatchingInfo(jobID,&root );
+
+	if (!success) {
+		LOG(LOG_FATAL, "Job %d does not exist in dice db job. ", jobID);
+		return vector<ColPair>();
+	}
 	Json::Value colsNode = root["cols"];
 	vector<string> cols;
 	for(unsigned int i = 0;i < colsNode.size();i++) { cols.push_back(colsNode[i].asString()); }
