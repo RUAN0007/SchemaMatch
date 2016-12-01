@@ -12,12 +12,15 @@
 #include <string>
 #include "csbc.h"
 
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>
 using namespace std;
 
 class dice_cs {
 public:
 	dice_cs(csbc* db){
 		this->_diceDB = db;
+		srand(time(NULL));
 	};
 
 	/*
