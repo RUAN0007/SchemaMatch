@@ -26,7 +26,7 @@ bool SchemaMatcher::creatDiceJob(const Json::Value& root, int jobID) {
 	sqlStream << "'" << state << "'" << ",";
 	sqlStream << "'" + root.toStyledString() + "'" << ");";
 
-	LOG(LOG_INFO, "Create Dice Job SQL:  %s \n",sqlStream.str().c_str());
+	LOG(LOG_DEBUG, "Create Dice Job SQL:  %s \n",sqlStream.str().c_str());
 
 	this->db->dice_dbops(sqlStream.str());
 	return true;
@@ -182,7 +182,7 @@ bool SchemaMatcher::getMatchingInfo(int jobID, Json::Value* info) {
 	sqlStream <<  "SELECT content FROM Jobs WHERE jobid = ";
 	sqlStream <<   jobID << ";";
 
-	LOG(LOG_INFO, "Get Matching Info SQL: %s",sqlStream.str().c_str());
+	LOG(LOG_DEBUG, "Get Matching Info SQL: %s",sqlStream.str().c_str());
 
 	this->db->dice_select(sqlStream.str());
 	list<string> values = csbc::result["content"];
@@ -194,7 +194,7 @@ bool SchemaMatcher::getMatchingInfo(int jobID, Json::Value* info) {
 	    bool parsingSuccessful = reader.parse( values.front().c_str(), *info );     //parse process
 	    if ( !parsingSuccessful )
 	    {
-	        LOG(LOG_INFO, "Parse Job %d Info Failed. Message: ", jobID, reader.getFormattedErrorMessages().c_str());
+	        LOG(LOG_DEBUG, "Parse Job %d Info Failed. Message: ", jobID, reader.getFormattedErrorMessages().c_str());
 	        return false;
 	    }
 		return true;

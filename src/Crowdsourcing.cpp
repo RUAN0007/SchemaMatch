@@ -31,10 +31,10 @@ bool Crowdsourcing::postColMatching(int jobID,
 		questionRoot["match"] = matchingNode;
 
 		string questionInfo = questionRoot.toStyledString();
-		LOG(LOG_INFO, "Start Posting Question to Crowdsourcing system. ");
+		LOG(LOG_DEBUG, "Start Posting Question to Crowdsourcing system. ");
 		int qid = this->genericCS->postQuestion(jobID, Crowdsourcing::CSID, questionInfo);
 
-		LOG(LOG_INFO, "Posting Question %d to Crowdsourcing system. ", qid);
+		LOG(LOG_DEBUG, "Posting Question %d to Crowdsourcing system. ", qid);
 	}
 	return true;
 }
@@ -55,8 +55,8 @@ map<string,string> Crowdsourcing::getColMatching(int jobID) {
 			string target_col = answerNode[0]["match"]["match_col"].asString();
 			string source_col = answerNode[0]["match"]["source_col"].asCString();
 
-//			matching[source_col] = target_col;
-			LOG(LOG_INFO, "%s -> %s ", source_col.c_str(), target_col.c_str());
+			matching[source_col] = target_col;
+			LOG(LOG_DEBUG, "%s -> %s ", source_col.c_str(), target_col.c_str());
 		}else{
 			LOG(LOG_WARNING,"Fail to parse answer for json %s", answer.c_str());
 		}
