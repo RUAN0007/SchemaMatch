@@ -158,7 +158,9 @@
         var selected_col  = $('input[name="match"]:checked').val();
 
         var answer= new Object();
-        answer[match_col] = selected_col
+        answer['source_col'] =match_col; 
+        answer['match_col'] = selected_col;
+
         // $("img").each(function(index,img){
         //     image={'pk':$(img).attr('pk'),name:$(img).attr('name')}
         //     if ($(img).hasClass("selected")){
