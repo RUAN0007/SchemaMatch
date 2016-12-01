@@ -7,21 +7,23 @@
 #include "debug.h"
 #include <iostream>
 #include <sstream>
-#include <stdlib.h>     /* srand, rand */
 
 bool SchemaMatcher::creatDiceJob(const Json::Value& root, int jobID) {
 	//insert into Job relatio with
 	//jobid = jobID
 	//crowdsourcingid = timon's job id
 	//content = root.to_string()
+
+	string state = "Fake State";//currently unused
+	string sql = "Fake SQL"; //currently unused
 	cout << "Create DICE JOB " << jobID << endl;
 	ostringstream sqlStream;
 	sqlStream <<  "INSERT INTO Jobs (jobid, crowdsourcingid, sql, state, content) "
 			"VALUES ";
 	sqlStream << "(" << jobID << ",";
 	sqlStream << Crowdsourcing::CSID << ",";
-	sqlStream << "" << ","; //TODO Later add sql statement here
-	sqlStream << "'" << "" << "'" << ","; //TODO Later add state informatio here
+	sqlStream << "'" << sql << "',";
+	sqlStream << "'" << state << "'" << ",";
 	sqlStream << "'" + root.toStyledString() + "'" << ");";
 
 	LOG(LOG_INFO, "Create Dice Job SQL:  %s \n",sqlStream.str().c_str());

@@ -6,6 +6,7 @@ using namespace std;
 #include "TablePattern.h"
 #include "Crowdsourcing.h"
 #include "csbc.h"
+#include <stdlib.h>     /* srand, rand */
 typedef pair<string,string> ColPair;
 typedef map<URI,double> TypeDistribution;
 
@@ -67,6 +68,8 @@ private:
 public:
 	inline SchemaMatcher(const Crowdsourcing& csPlatform,const TPGenerator tpGenerator, csbc* diceDB):
 			crowdPlatform(csPlatform),tpGen(tpGenerator), db(diceDB) {
+
+		srand(time(0));
 	}
 
 	~SchemaMatcher(){};
