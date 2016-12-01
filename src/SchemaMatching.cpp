@@ -7,6 +7,7 @@
 #include "debug.h"
 #include <iostream>
 #include <sstream>
+#include <stdlib.h>     /* srand, rand */
 
 bool SchemaMatcher::creatDiceJob(const Json::Value& root, int jobID) {
 	//insert into Job relatio with
@@ -133,8 +134,13 @@ int SchemaMatcher::askSchemaMatching(const WebTable& wt1, const WebTable& wt2, u
 	}
 	LOG(LOG_DEBUG,"-------------------------------------------------------------");
 
+	srand(NULL);
+	int jobID = rand() * 1000; //JobID is a random integer ranging from 0 to 1000
+	bool success = this->crowdPlatform.postColMatching(jobID, matchingOptions, wt1, wt2);
 
-	int jobID = this->crowdPlatform.postColMatching(matchingOptions, wt1, wt2);
+	if(!success) {
+		LOG(LOG_WARNING, "Posting Questions For Job %d Failed. ", jobID);
+	}
 
 	Json::Value root;
 	root["query_cols"] = queryColNode;
