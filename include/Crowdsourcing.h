@@ -9,30 +9,6 @@ using namespace std;
 
 class Crowdsourcing {
 public:
-	/*
-	 * Post questions regarding the correspondence between column and type
-	 * args:
-	 * 	candidateCorrespondence:
-	 * 		key: a column ID
-	 * 		value:a vector of candidate correspondent types in knowledgebase
-	 * 	wt: the WebTable with the column ID
-	 *
-	 * return:
-	 *  the job id
-	 */
-	int postColTypeCorrespondece(const map<string,vector<URI>>& candidateCorrespondece,
-								 const WebTable& wt
-								 ) const;
-
-	/*
-	 * Get the column type correspondence based on job ID
-	 * If the job has not finished, return an empty map
-	 *
-	 * return:
-	 * 	key: column ID
-	 * 	value: correspondent concept type
-	 */
-	map<string, URI> getColTypeCorrespondence(int jobID) const;
 
 	/*
 	 * Post question regarding the schema matching
@@ -59,8 +35,4 @@ public:
 	 */
 	map<string,string> getColMatching(int jobID) const;
 
-	/*
-	 * return whether a crowdsourcing job has finished based on the given job id
-	 */
-	bool hasJobFinished(int jobID) const;
 };

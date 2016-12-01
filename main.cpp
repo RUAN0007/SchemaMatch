@@ -16,14 +16,11 @@ using namespace boost;
 WebTable getExampleWebTable(string name="default_table");
 WebTable getExampleWebTable1(string name="default_table");
 WebTable getExampleWebTable2(string name="default_table");
-void show_typeDistribution();
 void show_getColTypes();
 void show_getPairRel();
 void show_cohScore();
 void show_genTP();
-void show_matchSchema();
 void show_serialize();
-void show_crowdTablePattern();
 void show_crowSchemaMatching();
 int main(){
 //	show_crowSchemaMatching();
@@ -70,31 +67,6 @@ void show_crowSchemaMatching() {
 //	for_each(colPairs.begin(),colPairs.end(),[](const ColPair colPair){
 //		cout << "[" << colPair.first << "]-[" << colPair.second << "]" << endl;
 //	});
-}
-void show_crowdTablePattern(){
-
-
-	Crowdsourcing cs;
-	KB kb;
-	kb.init("http://epic.d1.comp.nus.edu.sg:8890/sparql");
-	TPGenerator tpGen(&kb);
-//
-	SchemaMatcher schemaMatcher(cs,tpGen);
-
-	WebTable wt = getExampleWebTable();
-//
-	int id = schemaMatcher.askTablePattern(wt, 2);
-	cout << "Construct Table Pattern Job ID: " << id << endl;
-//
-//	if(schemaMatcher.isTablePatternReady(685)) {
-//
-//		TablePattern tp = schemaMatcher.getTablePattern(685);
-//		cout << endl;
-//		cout << "Returned Table Pattern: " << endl;
-//		cout << tp << endl;
-//	}else{
-//		cout << "Table Pattern " << 685 << " has not finished. " << endl;
-//	}
 }
 
 void show_serialize() {

@@ -6,176 +6,15 @@
 #include <json.h>
 #include "debug.h"
 
-string smInfoDir = "sm_info";
-string tpInfoDir = "tp_info";
-
-int SchemaMatcher::askTablePattern( WebTable& webTable,unsigned int maxQuestion) const{
-	//generate a list of candidate table pattern for the web table.
-
-	priority_queue<TablePattern> tps = this->tpGen.generatePatterns(webTable, 2);
-
-//	cout << "Table Pattern Size: " <<tps.size() << endl;
-	//Convert the p-q of table patterns to vector of table patterns
-	vector<TablePattern> tpv;
-	while(!tps.empty()) {
-		TablePattern tp = tps.top();
-		tpv.push_back(tp);
-		tps.pop();
-	}
-	//compute the entropy of each column and sort the column based on the entropy in decreasing order
-	map<string,map<URI,double>> colTypeDistr = this->getColTypeDistribution(tpv);
-//	cout << "Col Type Dist Size: " << colTypeDistr.size() << endl;
-	vector<pair<string,double>> colEntropy;
-	for(const auto& kv:colTypeDistr) {
-		string col = kv.first;
-		map<URI,double> typeDistr = kv.second;
-		double entropy;
-		for(const auto& typeProb:typeDistr){
-			entropy += -(typeProb.second * log2(typeProb.second));
-		}
-		colEntropy.push_back(make_pair(col, entropy));
-	}
-	sort(colEntropy.begin(),colEntropy.end(),
-			[](pair<string,double> p1, pair<string,double> p2)->bool{
-				return p1.second > p2.second;
-	});
-//	for(pair<string,double> colEnt:colEntropy) {
-//		cout << colEnt.first << ": " << colEnt.second << endl;
-//	}
-	//prepare min(maxQuestion, colEntropy.size()) questions
-	Json::Value queryColNode;
-	map<string,vector<URI>> candidateCorrespondences;
-	for(unsigned int i = 0;i < maxQuestion;i++) {
-		if(i == colEntropy.size()) break;
-		string col = colEntropy[i].first;
-		double entropy = colEntropy[i].second;
-		if(entropy < 1e-6) break;
-		queryColNode.append(col);
-		vector<URI> candidateTypes;
-		for(const auto& typeProb:colTypeDistr[col]){
-			candidateTypes.push_back(typeProb.first);
-		}
-		candidateCorrespondences[col] = candidateTypes;
-
-//		cout << col << endl;
-//		for(URI t:candidateTypes) cout << "\t" << t << endl;
-//		cout << endl;
-	}
-	//prepare for the question and return the job ID
-	int jobID = this->crowdPlatform.postColTypeCorrespondece(candidateCorrespondences, webTable);
-
-	// write the table patterns, the query columns order by entropy to disk
-	Json::Value candidateTPNode;
-	for(const TablePattern& tp:tpv){
-		candidateTPNode.append(tp.serialize());
-	}
-	Json::Value root;
-	root["tps"] = candidateTPNode;
-	root["query_cols"] = queryColNode;
-
-	ofstream tpQuestionFile;
-	tpQuestionFile.open(tpInfoDir + "/TP_" + to_string(jobID) + ".json",std::ios::out);
-	tpQuestionFile << root.toStyledString();
-	tpQuestionFile.close();
-
-	return jobID;
-}
-
-TablePattern SchemaMatcher::getTablePattern(int jobID) const{
-
-	if(!isTablePatternReady(jobID)){
-
-		LOG(LOG_WARNING,"Table Pattern Job %d has not finished in crowdsourcing platform. ", jobID);
-		return TablePattern();
-	}
-	ifstream tpQuestionFile(tpInfoDir + "/TP_" + to_string(jobID) + ".json",ifstream::binary);
-	if(!tpQuestionFile.is_open()) {
-		LOG(LOG_WARNING,"Info of Schema Matching Job %d has not been found in folder tp_questions. ", jobID);
-		return TablePattern();
-	}
-
-	Json::Value root;
-	Json::Reader reader;
-
-	if(!reader.parse(tpQuestionFile, root)){
-		cout << "Fail to parse table pattern job " + to_string(jobID) << endl;
-		return TablePattern();
-	}
-
-	list<TablePattern> tps;
-	Json::Value tpsNode = root["tps"];
-	for(unsigned int i = 0;i < tpsNode.size();i++) {
-		tps.push_back(TablePattern::deserialize(tpsNode[i]));
-	}
-//	cout << "Table Pattern Count: " << tps.size() << endl;
-	vector<string> queryCols;
-	Json::Value queryColsNode = root["query_cols"];
-	for(unsigned int i = 0;i < queryColsNode.size();i++) {
-		queryCols.push_back(queryColsNode[i].asString());
-	}
-//	cout << "Query Col: " << endl;
-//	for(string col:queryCols) cout << col << " ";
-//	cout << endl;
-
-	map<string,URI> correspondence = this->crowdPlatform.getColTypeCorrespondence(jobID);
-
-	list<TablePattern> preTps;
-	for(string queryCol: queryCols) {
-		auto colIt = correspondence.find(queryCol);
-		if(colIt == correspondence.end()) {cout << "Fatal: Cannot find type correspondence for column " + queryCol; }
-		URI type = colIt->second;
-		//Before filter, take the snapshot of original candidate table patterns
-		preTps = tps;
-
-		//filter out all the table patterns that violate this column's correspondence
-		for(auto tpIt = tps.begin();tpIt != tps.end();) {
-			vector<CKEntry> ckEntries = tpIt->getCKEntries();
-			auto targetEntryIt = find_if(ckEntries.begin(), ckEntries.end(),[queryCol, type](const CKEntry& ck)->bool{
-				return ck.getColName() == queryCol && ck.getType() == type;
-			});
-
-			if( targetEntryIt != ckEntries.end()) {
-				tpIt++;
-			}else{
-			//This table pattern violates this crowdsourcing correspondence. It shall be removed.
-				tpIt = tps.erase(tpIt);
-			}
-		}//for tpit
-//		cout <<endl;
-//		cout << "Col: " << queryCol << " " << "Type: " << type <<endl;
-//		cout << "Remaining Table Patterns: " << endl << endl;
-//		for(const TablePattern& tp: tps){
-//			cout << tp << endl;
-//			cout << endl;
-//		}
-		if(tps.empty()) break;
-	}//for queryCol
-
-	list<TablePattern> candidateTps = tps.empty()?preTps:tps;
-
-	//return the table pattern with the max probability
-	list<TablePattern>::iterator maxTpIt =
-			max_element(tps.begin(),tps.end(),
-							[](const TablePattern& lhs, const TablePattern& rhs)->bool {
-								return lhs.getProbability() < rhs.getProbability();
-							}
-						);
-
-	return *maxTpIt;
-}
-
-
-
-bool SchemaMatcher::isTablePatternReady(int jobID) const{
-	return this->crowdPlatform.hasJobFinished(jobID);
-}
 
 bool dumpSMInfo(const Json::Value& root, int jobID) {
-	ofstream smQuestionFile;
-	smQuestionFile.open(smInfoDir + "/SM_" + to_string(jobID) + ".json",std::ios::out);
-	if(!smQuestionFile.is_open()) return false;
-	smQuestionFile << root.toStyledString();
-	smQuestionFile.close();
+	//insert into Job relatio with
+	//jobid = jobID
+	//crowdsourcingid = timon's job id
+	//content = root.to_string()
+
+
+
 	return true;
 }
 
@@ -296,9 +135,6 @@ int SchemaMatcher::askSchemaMatching(const WebTable& wt1, const WebTable& wt2, u
 	return jobID;
 }
 
-bool SchemaMatcher::isSchemaMatchingReady(int jobID) const {
-	return this->crowdPlatform.hasJobFinished(jobID);
-}
 
 
 map<string,map<string,double>> SchemaMatcher::filterMatching(
@@ -325,24 +161,13 @@ map<string,map<string,double>> SchemaMatcher::filterMatching(
 
 Json::Value getSMInfo(int jobID) {
 	Json::Value root;
-	Json::Reader reader;
 
-	ifstream smQuestionFile(smInfoDir + "/SM_" + to_string(jobID) + ".json",ifstream::binary);
-	if(!smQuestionFile.is_open()) {
-		LOG(LOG_FATAL,"Info of Schema Matching Job %d has not been found in folder. ", jobID, "sm_questions/");
-	}
-	if(!reader.parse(smQuestionFile, root)){
-		cout << "Fail to parse schema matching job " + to_string(jobID) << endl;
-	}
+	//Retrieve content attribute from relation Jobs based on jobID
+
 	return root;
 }
 vector<ColPair> SchemaMatcher::getSchemaMatching(int jobID) const {
 	//Retrieve the candidate column matching from the stored json file
-
-	if(!isSchemaMatchingReady(jobID)) {
-		LOG(LOG_WARNING,"Schema Matching Job %d has not finished in crowdsourcing platform. ", jobID);
-		return vector<ColPair>();
-	}
 
 	Json::Value root = getSMInfo(jobID);
 	Json::Value colsNode = root["cols"];

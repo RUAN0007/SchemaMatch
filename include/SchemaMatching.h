@@ -61,22 +61,8 @@ public:
 
 	~SchemaMatcher(){};
 
-	/*
-	 *return job id
-	 */
-	int askTablePattern(WebTable& webTable,unsigned int maxQuestion) const;
-
-	bool isTablePatternReady(int jobID) const;
-
-	/*
-	 * Get the generated table pattern based on the job ID
-	 * return empty table pattern if the table pattern has not been generated yet.
-	 */
-	TablePattern getTablePattern(int jobID) const;
 
 	int askSchemaMatching(const WebTable& wt1, const WebTable& wt2, unsigned int maxQuestion) const;
-
-	bool isSchemaMatchingReady(int jobID) const;
 
 	vector<ColPair> getSchemaMatching(int jobID) const;
 
