@@ -48,7 +48,6 @@ int dice_cs::postQuestion(int jobID, int csID,string question){
 	return qid;
 }
 
-map<string,list<string>> csbc::result;
 bool dice_cs::getAnswer(int qid, string* answerPtr){
 	string sql = getAnswerSQL(qid);
 //	cout << "SQL: " << endl;

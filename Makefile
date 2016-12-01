@@ -27,7 +27,7 @@ DEP_DEBUG =
 OUTDIR_DEBUG = bin/debug
 
 OBJ_DEBUG =  $(OBJDIR_DEBUG)/WebTable.o $(OBJDIR_DEBUG)/jsoncpp.o $(OBJDIR_DEBUG)/TablePattern.o  \
-$(OBJDIR_DEBUG)/SchemaMatching.o  $(OBJDIR_DEBUG)/debug.o $(OBJDIR_DEBUG)/Crowdsourcing.o $(OBJDIR_DEBUG)/dice_cs.o
+$(OBJDIR_DEBUG)/SchemaMatching.o  $(OBJDIR_DEBUG)/debug.o $(OBJDIR_DEBUG)/Crowdsourcing.o $(OBJDIR_DEBUG)/dice_cs.o $(OBJDIR_DEBUG)/csbc.o
 
 OBJ_MAIN_DEBUG = $(OBJDIR_DEBUG)/main.o
 
@@ -70,11 +70,13 @@ $(OBJDIR_TEST)/TablePattern-test.o: $(SRC_TEST)/TablePattern-test.cpp
 debug: $(OBJ_DEBUG) $(OBJ_MAIN_DEBUG)
 	$(LD) $(LIBDIR_DEBUG) -o $(OUTDIR_DEBUG)/main $(OBJ_MAIN_DEBUG) $(OBJ_DEBUG)  $(LIB_DEBUG) $(LDFLAGS_DEBUG) 
 
-$(OBJDIR_DEBUG)/WebTable.o: $(SRC)/WebTable.cpp $(HEADER_DIR)/WebTable.h
-	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC)/WebTable.cpp -o $(OBJDIR_DEBUG)/WebTable.o
+
 
 $(OBJDIR_DEBUG)/jsoncpp.o: $(SRC)/jsoncpp.cpp
 	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC)/jsoncpp.cpp -o $(OBJDIR_DEBUG)/jsoncpp.o
+
+$(OBJDIR_DEBUG)/WebTable.o: $(SRC)/WebTable.cpp $(HEADER_DIR)/WebTable.h
+	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC)/WebTable.cpp -o $(OBJDIR_DEBUG)/WebTable.o
 
 $(OBJDIR_DEBUG)/main.o: main.cpp
 	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c main.cpp -o $(OBJDIR_DEBUG)/main.o
@@ -91,9 +93,12 @@ $(OBJDIR_DEBUG)/debug.o: $(SRC)/debug.cpp $(HEADER_DIR)/debug.h
 $(OBJDIR_DEBUG)/Crowdsourcing.o: $(SRC)/Crowdsourcing.cpp $(HEADER_DIR)/Crowdsourcing.h
 	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC)/Crowdsourcing.cpp -o $(OBJDIR_DEBUG)/Crowdsourcing.o
 	
-$(OBJDIR_DEBUG)/dice_cs.o: $(SRC)/dice_cs.cpp $(HEADER_DIR)/dice_cs.h $(HEADER_DIR)/csbc.hpp 
+$(OBJDIR_DEBUG)/dice_cs.o: $(SRC)/dice_cs.cpp $(HEADER_DIR)/dice_cs.h 
 	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC)/dice_cs.cpp -o $(OBJDIR_DEBUG)/dice_cs.o
-	
+
+$(OBJDIR_DEBUG)/csbc.o: $(SRC)/csbc.cpp $(HEADER_DIR)/csbc.h 
+	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c $(SRC)/csbc.cpp -o $(OBJDIR_DEBUG)/csbc.o
+		
 clean: 
 	rm -rf $(OBJDIR_DEBUG) $(OBJDIR_TEST)
 	rm -rf $(OUTDIR_DEBUG) $(OUTDIR_TEST) 
