@@ -17,7 +17,7 @@ detail_api = "/api/entities/"
 callback_queue = Queue(maxsize=0)
 
 def get_create_api(job_id):
-    return "/api/jobs/"+str(job_id)+"/entities"
+    return timon_url + "/api/jobs/"+str(job_id)+"/entities"
 
 def success(data=""):
     res = dict(
@@ -35,7 +35,7 @@ def failure(message):
 
 
 class Entity:
-    def __init__(self):
+    def __init__(self, job_id):
         self.id=0
         self.info=dict()
         self.job=job_id
@@ -48,7 +48,7 @@ class Entity:
     def to_json(self):
         return json.dumps(dict(
                             id=self.id,
-                            job=job_id,
+                            job=self.job,
                             info=json.dumps(self.info)
                            ))
 
@@ -124,7 +124,7 @@ def handle_callback():
                 eids = [] # a list of entity IDs, returned by Timon
                 qids = [] # a list of unposted question IDs
                 for (qid, csid, question) in get_unposted_questions():
-                    entity = Entity()
+                    entity = Entity(csid)
                     entity.add_info("question",question)
                     headers = {'Accept': 'application/json','Content-Type':'application/json;charset=UTF-8'}
 
@@ -138,8 +138,8 @@ def handle_callback():
                     else:
                         print "Post entity failed..."
                         print r.text 
-
-                update_questions_status(qids, eids)
+                if len(qids) > 0:
+                    update_questions_status(qids, eids)
 
             elif request_type == "ENTITY_FINISHED":
                 if debug:
@@ -186,11 +186,11 @@ def callback():
    
 if __name__ == "__main__":
     # init()
-    update_answer(eid=11,answer="demo answer")
+#     update_answer(eid=11,answer="demo answer")
     # qids = [0,10,100,3]
     # eids = [10, 11,22,33]
     # update_questions_status(qids, eids)
     # get_unposted_questions()
-    # thread.start_new_thread( handle_callback,())
-    # app.debug = debug 
-    # app.run(host='0.0.0.0', port= port)
+      thread.start_new_thread( handle_callback,())
+      app.debug = debug 
+      app.run(host='0.0.0.0', port= port)
