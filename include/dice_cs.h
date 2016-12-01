@@ -16,14 +16,9 @@ using namespace std;
 
 class dice_cs {
 public:
-	dice_cs(){};
-	dice_cs(string dbPath){
-		this->_diceDB = new csbc(dbPath);
+	dice_cs(csbc* db){
+		this->_diceDB = db;
 	};
-
-	~dice_cs() {
-		delete this->_diceDB;
-	}
 
 	/*
 	 * Post the DICE crowdsourcing question by writing the question info to relation CSTask in DICE DB

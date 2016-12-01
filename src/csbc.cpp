@@ -22,7 +22,7 @@ map<string,list<string>> csbc::result;
       }
     }
 
-    static int csbc::callback(void *data, int argc, char **argv, char **azColName){
+    int csbc::callback(void *data, int argc, char **argv, char **azColName){
       int i;
       for(i=0; i < argc; i++){
 //        cout <<  azColName[i] << " = " <<  (argv[i] ? argv[i] : "NULL") << endl;

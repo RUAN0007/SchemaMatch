@@ -11,9 +11,9 @@ typedef map<URI,double> TypeDistribution;
 
 class SchemaMatcher {
 private:
-	const Crowdsourcing crowdPlatform;
-	const TPGenerator tpGen;
-	csbc db;
+	Crowdsourcing crowdPlatform;
+	TPGenerator tpGen;
+	csbc* db;
 	/*
 	 * Compute type distribution for each column based on the candidate table patterns and their score
 	 */
@@ -65,7 +65,7 @@ private:
 	bool getMatchingInfo(int jobID, Json::Value* info);
 
 public:
-	inline SchemaMatcher(const Crowdsourcing& csPlatform,const TPGenerator tpGenerator, csbc diceDB):
+	inline SchemaMatcher(const Crowdsourcing& csPlatform,const TPGenerator tpGenerator, csbc* diceDB):
 			crowdPlatform(csPlatform),tpGen(tpGenerator), db(diceDB) {
 	}
 

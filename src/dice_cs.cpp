@@ -40,8 +40,8 @@ int dice_cs::postQuestion(int jobID, int csID,string question){
 
 	string createSQL = dice_cs::createQuestionSQL(jobID, qid, csID, question);
 
-//	cout << "SQL:" << endl;
-//	cout << createSQL << endl;
+	cout << "SQL:" << endl;
+	cout << createSQL << endl;
 	this->_diceDB->dice_dbops(createSQL);
 	cout << "Create Question " << qid << " for Job ID: " << jobID <<endl;
 

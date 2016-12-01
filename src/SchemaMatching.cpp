@@ -14,7 +14,7 @@ bool SchemaMatcher::creatDiceJob(const Json::Value& root, int jobID) {
 	//jobid = jobID
 	//crowdsourcingid = timon's job id
 	//content = root.to_string()
-
+	cout << "Create DICE JOB " << jobID << endl;
 	ostringstream sqlStream;
 	sqlStream <<  "INSERT INTO Jobs (jobid, crowdsourcingid, sql, state, content) "
 			"VALUES ";
@@ -26,7 +26,7 @@ bool SchemaMatcher::creatDiceJob(const Json::Value& root, int jobID) {
 
 	LOG(LOG_INFO, "Create Dice Job SQL:  %s \n",sqlStream.str().c_str());
 
-	this->db.dice_dbops(sqlStream.str());
+	this->db->dice_dbops(sqlStream.str());
 	return true;
 }
 
@@ -134,8 +134,7 @@ int SchemaMatcher::askSchemaMatching(const WebTable& wt1, const WebTable& wt2, u
 	}
 	LOG(LOG_DEBUG,"-------------------------------------------------------------");
 
-	srand(NULL);
-	int jobID = rand() * 1000; //JobID is a random integer ranging from 0 to 1000
+	int jobID = rand() % 1000; //JobID is a random integer ranging from 0 to 1000
 	bool success = this->crowdPlatform.postColMatching(jobID, matchingOptions, wt1, wt2);
 
 	if(!success) {
@@ -183,7 +182,7 @@ bool SchemaMatcher::getMatchingInfo(int jobID, Json::Value* info) {
 
 	LOG(LOG_INFO, "Get Matching Info SQL: %s",sqlStream.str().c_str());
 
-	this->db.dice_select(sqlStream.str());
+	this->db->dice_select(sqlStream.str());
 	list<string> values = csbc::result["content"];
 
 	if (values.size() == 0){
