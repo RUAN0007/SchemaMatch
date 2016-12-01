@@ -75,12 +75,12 @@
         
         var optionHTML = '<h1>';
         //Below loop only iterate once.
-        for(var col in corr_node) {
+        for(var col in match_node) {
             match_col = col;
             optionHTML += 'Which column in Table ';
             optionHTML += table2_name;
             optionHTML += ' does Table ';
-            optionHTML ++ table1_name;
+            optionHTML += table1_name;
             optionHTML += ' Column ';
             optionHTML +=  col;
             optionHTML += " match to? "
@@ -119,18 +119,16 @@
             var entity=worker.nextEntity(); 
             $("#work-message").hide();
             $("#work-content").show(); 
-            var question = entity.getInfo('question');
-
-            console.log(question);
-
-            var table1_html = tableHTML(question.wt1);
-            table1_name = question.wt1.name;
-            var table2_html = tableHTML(question.wt2);
-            table2_name = question.wt2.name;
-            var option_html = optionHTML(table1_name, table2_name, question.match);
+            var quest = JSON.parse(entity.getInfo('question'));
+            console.log(quest);
+            var table1_html = tableHTML(quest.wt1);
+            table1_name = quest.wt1.name;
+            var table2_html = tableHTML(quest.wt2);
+            table2_name = quest.wt2.name;
+            var option_html = optionHTML(table1_name, table2_name, quest.match);
 
             $("#question").empty();
-            $("#question").append(table_html).append(option_html);
+            $("#question").append(table1_html).append(table2_html).append(option_html);
 
             // var question_html= $("<h2>Please click the pictures that do <span style='color:red'>NOT</span> belong to <a style='color:red' href='https://www.google.com.sg/search?rct=j&q="+question.label+"' target='_blank'> "+question.label+"?</a></h2>");     
             // var image_html= "";
