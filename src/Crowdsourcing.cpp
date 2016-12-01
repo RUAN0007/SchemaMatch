@@ -1,34 +1,19 @@
 #include <Crowdsourcing.h>
 #include <fstream>
-#include <stdlib.h>     /* srand, rand */
-#include <time.h>       /* time */
 #include "debug.h"
 
-//Add jobID in this API
-bool dumpQuestionInf(Json::Value questionRoot, int questionID) {
-/*
- * Dump the schema matching question info in json format
- */
-		ofstream smQuestionFile;
-		smQuestionFile.open(smQuestionDir + "SM" + to_string(questionID) + ".json",std::ios::out);
-		smQuestionFile << questionRoot.toStyledString();
-		smQuestionFile.close();
-		return true;
-}
+int Crowdsourcing::CSID = 2;
 
 //Add jobID into this API
-int Crowdsourcing::postColMatching(const map<string, vector<string>>& candidateMatching, const WebTable& wt1, const WebTable& wt2) const{
+bool Crowdsourcing::postColMatching(int jobID,
+									const map<string, vector<string>>& candidateMatching,
+									const WebTable& wt1, const WebTable& wt2){
 
-	srand(time(NULL));
-	int jobID = rand() % 1000; //select a random 4-digit integer as a job ID
 
 	Json::Value wt1Node = wt1.serialize();
 	Json::Value wt2Node = wt2.serialize();
-
 	Json::Value questionInfoNode;
 	for(const auto& match: candidateMatching) {
-		int questionID = rand() % 9000 + 1000; //QuestionID is a random integer from [1000,9999]
-		questionInfoNode.append("SM" + to_string(questionID));
 
 		Json::Value questionRoot;
 		Json::Value matchingNode;
@@ -45,36 +30,37 @@ int Crowdsourcing::postColMatching(const map<string, vector<string>>& candidateM
 		questionRoot["wt2"] = wt2Node;
 		questionRoot["match"] = matchingNode;
 
-		dumpQuestionInf(questionRoot, questionID);
+		string questionInfo = questionRoot.toStyledString();
+		LOG(LOG_INFO, "Start Posting Question to Crowdsourcing system. ");
+		int qid = this->genericCS->postQuestion(jobID, Crowdsourcing::CSID, questionInfo);
+
+		LOG(LOG_INFO, "Posting Question %d to Crowdsourcing system. ", qid);
 	}
-	dumpJobInfo(infoRoot, jobID);
-	return jobID;
-}
-/*
- * Retrieve the answer of schema matching job based on jobID
- */
-Json::Value getSMAnswerJson(int jobID) {
-
-	Json::Value root;
-
-	//Retrieve from CSTask based on jobID
-	//Check their statuses and collect their answers
-
-
-	return root;
+	return true;
 }
 
-map<string,string> Crowdsourcing::getColMatching(int jobID) const{
+map<string,string> Crowdsourcing::getColMatching(int jobID) {
 	map<string,string> matching;
-	//read the file for the matching answer //for testing purpose //	matching["WTA_1"] = "WTB_0"; //	matching["WTB_2"] = "N.A.";
 
-	Json::Value root = getSMAnswerJson(jobID);
-	Json::Value colNode = root["cols"];
-	Json::Value matchesNode = root["matches"];
-	for(unsigned int i = 0;i < colNode.size();i++) {
-		string col = colNode[i].asString();
-		string matchCol = matchesNode[col].asString();
-		matching[col] = matchCol;
+	list<string> jobAnswers;
+	bool success = this->genericCS->getJobAnswers(jobID, &jobAnswers);
+	if (!success) {
+		LOG(LOG_WARNING,"Retrieve answer for job %d failed...", jobID);
 	}
+	Json::Reader reader;
+	for(const string& answer: jobAnswers) {
+		Json::Value answerNode;
+		if (reader.parse(answer, answerNode)) {
+			//Assume there is only one question.
+			string target_col = answerNode[0]["match"]["match_col"].asString();
+			string source_col = answerNode[0]["match"]["source_col"].asCString();
+
+//			matching[source_col] = target_col;
+			LOG(LOG_INFO, "%s -> %s ", source_col.c_str(), target_col.c_str());
+		}else{
+			LOG(LOG_WARNING,"Fail to parse answer for json %s", answer.c_str());
+		}
+	}//End of for loop
+
 	return matching;
 }
