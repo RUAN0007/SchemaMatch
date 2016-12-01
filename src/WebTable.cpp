@@ -2,9 +2,9 @@
 #include "json.h"
 #include "json-forwards.h"
 #include "WebTable.h"
-#define DEBUG
+//#define DEBUG
 #include "debug.h"
-
+using namespace std;
 
 WebTable::WebTable(string tname) {
 	 this->name = tname;
@@ -95,36 +95,36 @@ WebTable WebTable::parseWebTable(string tableName,string line)  {
       		i++;	
       	}
       }else{
-      	DEBUG_STDOUT("Unrecognzied Web Table Orientation: " + tableName);
+//      	DEBUG_STDOUT("Unrecognzied Web Table Orientation: " + tableName);
       }
   }else{
-      	DEBUG_STDOUT("Error Parsing String" + line);
+      	//DEBUG_STDOUT("Error Parsing String" + line);
   }
     return wt;
 }
 
 void WebTable::print() {
-  cout << "------------------------------------------------" << endl;
-  cout << "Name: " << this->name << endl;
-  cout << "Header: ";
-  auto headerIt = this->colHeaders.begin();
-  for (;headerIt != this->colHeaders.end();headerIt++) {
-    cout << *headerIt << ", ";
-  }
-  cout << endl;
-
-	headerIt = this->colHeaders.begin();
-	for (;headerIt != this->colHeaders.end();headerIt++) {
-		cout << "\t" << *headerIt << "-> ";
-		vector<string> value = this->values[*headerIt];
-		auto vit = value.begin();
-		for (;vit != value.end();vit++) {
-			cout << *vit << ", ";
-		}
-		cout << endl;
-
-	}
-  cout << "------------------------------------------------" << endl;
+//  cout << "------------------------------------------------" << endl;
+//  cout << "Name: " << this->name << endl;
+//  cout << "Header: ";
+//  auto headerIt = this->colHeaders.begin();
+//  for (;headerIt != this->colHeaders.end();headerIt++) {
+//    cout << *headerIt << ", ";
+//  }
+//  cout << endl;
+//
+//	headerIt = this->colHeaders.begin();
+//	for (;headerIt != this->colHeaders.end();headerIt++) {
+//		cout << "\t" << *headerIt << "-> ";
+//		vector<string> value = this->values[*headerIt];
+//		auto vit = value.begin();
+//		for (;vit != value.end();vit++) {
+//			cout << *vit << ", ";
+//		}
+//		cout << endl;
+//
+//	}
+//  cout << "------------------------------------------------" << endl;
 
 
 }
